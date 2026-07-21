@@ -14,10 +14,10 @@ def normalise_prop(ssc, raw_ind, output_dir):
     Returns:
     - norm_df: DataFrame [gRNA, gene, <normalised count columns under original names>]
     """
-    # all data columns = everything after the 2 ID columns
-    data_cols = list(raw_ind.columns[2:])
+    # all data columns = everything after the 3 ID columns
+    data_cols = list(raw_ind.columns[3:])
     if not data_cols:
-        raise ValueError("No count columns found after the 2 ID columns")
+        raise ValueError("No count columns found after the 3 ID columns")
 
     datc = raw_ind[data_cols].astype(float).to_numpy()
 
@@ -46,6 +46,6 @@ def normalise_prop(ssc, raw_ind, output_dir):
                 dpi=300, bbox_inches="tight")
     plt.close()
 
-    norm_df = raw_ind.iloc[:, :2].copy()
+    norm_df = raw_ind.iloc[:, :3].copy()
     norm_df[data_cols] = norm_dat
     return norm_df

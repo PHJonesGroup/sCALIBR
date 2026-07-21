@@ -14,8 +14,6 @@ def norm_table_individ(norm_dat, raw_ind, baseline, cond1, rep=None):
         tab_norm_cond1, tab_norm_cond2: DataFrames with
             ['sgRNA_name', 'gene', <replicate columns for that condition>]
     """
-    id_cols = ['sgRNA_name', 'gene']
-
     def build_table(cond):
         # all data columns belonging to this condition, in original order
         cond_cols = [c for c in norm_dat.columns if c == cond]
@@ -25,6 +23,7 @@ def norm_table_individ(norm_dat, raw_ind, baseline, cond1, rep=None):
         tab = pd.DataFrame({
             'sgRNA_name': raw_ind.iloc[:, 0].values,
             'gene':       raw_ind.iloc[:, 1].values,
+            'gene_type':  raw_ind.iloc[:, 2].values,
         })
         # attach each replicate column under its own name
         for c in cond_cols:

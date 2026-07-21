@@ -4,8 +4,8 @@ import os
 
 def plot_me_med(tab_norm_T0, tab_norm_T1, output_dir):
     # all replicate columns for each condition (whatever the count)
-    T0 = tab_norm_T0.iloc[:, 2:].to_numpy()
-    T1 = tab_norm_T1.iloc[:, 2:].to_numpy()
+    T0 = tab_norm_T0.iloc[:, 3:].to_numpy()
+    T1 = tab_norm_T1.iloc[:, 3:].to_numpy()
 
     me0,  med0  = np.mean(T0, axis=0), np.median(T0, axis=0)
     me1,  med1  = np.mean(T1, axis=0), np.median(T1, axis=0)
@@ -16,7 +16,7 @@ def plot_me_med(tab_norm_T0, tab_norm_T1, output_dir):
     me_med  = np.vstack([means, medians])
 
     # column labels straight from the tables, so they match the data
-    labels = list(tab_norm_T0.columns[2:]) + list(tab_norm_T1.columns[2:])
+    labels = list(tab_norm_T0.columns[3:]) + list(tab_norm_T1.columns[3:])
 
     # ---------- visualization (mean + median , tallest at back) ----------
     plt.figure(figsize=(max(8, 0.6 * len(labels)), 5))

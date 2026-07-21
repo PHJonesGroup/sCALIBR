@@ -41,15 +41,14 @@ args = parse_args()
 config = load_config(args.config)
 
 input_counts = Path(config["input_counts"])
-input_controls = config.get("input_controls")
 output_dir = Path(config["output_dir"])
 rep = config["rep"]
 keep_counts = config["keep_counts"]
 control = config["control"]
 alf = config["alf"]
 
-pat1 = config["pat1"]
-pat2 = config["pat2"]
+target_type = config["target_type"]
+control_type = config["control_type"]
 baseline = config["baseline"]
 cond1 = config["cond1"]
 rep_pairs = config["rep_pairs"]
@@ -78,13 +77,11 @@ gRNA = raw_ind.iloc[:, 0].values  # first column (gRNA names)
 gene = raw_ind.iloc[:, 1].values  # second column (gene names)
 
 # filter dataframe for count
-keep = list(T_vert.columns[:2]) + [
-    c for c in T_vert.columns[2:]
+keep = list(T_vert.columns[:3]) + [
+    c for c in T_vert.columns[3:]
     if c == baseline or c == cond1
 ]
 T_vert = T_vert[keep]
-
-print(T_vert)
 
 # -------------------- 1.1 --------------------
 # Counts how many times each gene name/intergenic name occurs in the raw count file & gives number of gRNA per gene/ intergenic
@@ -101,15 +98,25 @@ raw_ind_f = T_vert.iloc[ind_keep, :].reset_index(drop=True)
 # -------------------- 1.3 --------------------
 # Normalise (CPM) counts as percentage within a column
 norm_dat = normalise_prop.normalise_prop(ssc, raw_ind_f, output_dir) 
-
 # -------------------- 1.4 --------------------
 # Format normalised counts, compute mean and median of normalised counts
 tab_norm_T0, tab_norm_T1 = norm_table_individ.norm_table_individ(norm_dat, raw_ind_f, baseline, cond1, rep)
 
 me_med_T0_T1 = plot_me_med.plot_me_med(tab_norm_T0, tab_norm_T1, output_dir)
 
-T_norm_WT = pd.concat([tab_norm_T0, tab_norm_T1.iloc[:, 2:(2 + 2*rep)]], axis=1)
+T_norm_WT = pd.concat([tab_norm_T0, tab_norm_T1.iloc[:, 3:(3 + 2*rep)]], axis=1)
 T_norm_WT.to_csv(os.path.join(output_dir, 'normalised_counts.csv'), index=False)
 
 norm_tab = T_norm_WT.copy()
 column_labels = norm_tab.columns.tolist()
+
+# ============================ MODULE 2 ============================
+T_norm_indiv = T_norm_WT.copy()
+# -------------------- 2.1 --------------------
+# Separate and show controls, NTs, zGE, and normalised counts
+# Distribution of:
+# (1) Controls: intergenic genes
+# (2) NT = non-targeted genes
+# (3) zGE = zero expressed genes
+# (4) Normalised targeted genes
+

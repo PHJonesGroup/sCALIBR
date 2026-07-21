@@ -1,23 +1,22 @@
 # -------------------- Parameters --------------------
 
 input_counts    : "data_input/bea_5fu.csv"
-input_controls  : "demo_data/zGE_gene_list.csv" #optional
 output_dir      : "test_ouput/"
-rep             : 1 # number of replicates per condition
-keep_counts     : [1, 4] #number of gRNAs expected per genes
-control         : "zGE" # choice between Intergenic, Non-targetting or zGE
-alf             : 0.06  # significance level of right-left tail of distribution
+rep             : 1                     # number of replicates per condition
+keep_counts     : [1, 4]                #number of gRNAs expected per genes
+control         : "zGE"                 # choice between Intergenic, Non-targetting or zGE
+alf             : 0.06                  # significance level of right-left tail of distribution
 
 # Patterns for filtering 
-pat1            : 'chr' #Intergenic filtering
-pat2            : 'Non' #Non-targetting filtering
-baseline        : 'CRISPRKO_T0' #baseline condition
-cond1           : 'CRISPRKO_T1_NO5FU' #condition 1
-cond2           : 'CRISPRKO_T1_5FU' #condition 2
-rep_pairs       : null #replicate names
+target_type     : 'GOI'    
+control_type    : 'Zero-expressed gene'
+baseline        : 'CRISPRKO_T0'         #baseline condition
+cond1           : 'CRISPRKO_T1_NO5FU'   #condition 1
+cond2           : 'CRISPRKO_T1_5FU'     #condition 2
+rep_pairs       : null                  #replicate names
 
 # Plotting parameters
-st              : -10 # x axis start
-en              : 10 # x axis end
-step            : 0.05 # bin steps
-thr_lfchz       : 1.7 # LCF threshold
+st              : -10                   # x axis start
+en              : 10                    # x axis end
+step            : 0.05                  # bin steps
+thr_lfchz       : 1.7                   # LCF threshold
