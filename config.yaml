@@ -1,0 +1,22 @@
+# -------------------- Parameters --------------------
+
+input_counts : "demo_data/test_data.csv"
+input_controls : "demo_data/zGE_gene_list.csv" #optional
+output_dir : "test_ouput/"
+rep     : 4 # number of replicates per condition
+keep_counts : [1, 4, 10] #number of gRNAs expected per genes
+control : "Intergenic" # choice between Intergenic, Non-targetting or zGE
+alf     : 0.06  # significance level of right-left tail of distribution
+
+# Patterns for filtering 
+pat1    : 'chr' #Intergenic filtering
+pat2    : 'Non' #Non-targetting filtering
+cond1   : 'T1' #condition 1
+cond2   : 'T0' #condition 2
+rep_pairs : ['1', '2', '3', '4'] #replicate names
+
+# Plotting parameters
+st      : -10 # x axis start
+en      : 10 # x axis end
+step    : 0.05 # bin steps
+thr_lfchz : 1.7 # LCF threshold
