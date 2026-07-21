@@ -1,93 +1,99 @@
 # CRISPR_Targeted_Pipeline
 
+This pipeline is designed to find significant gRNA enrichment/depletion accounting for both FDR and FNR rates. This is achieved by calculating the likelihood of the observed gRNA fold change for each gene differing from the distribution of the set of true neutral control gRNAs in the screen.
 
+## System Requirements
 
-## Getting started
+### Operating Systems
+This package has been tested on:
+- macOS: Tahoe (26.5.1)
+- Linux: Ubuntu 22.04 LTS
+- Windows: 11
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+### Software Dependencies
+- Python 3.13.5
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+See required packages and versions in requirement.txt
 
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://gitlab.internal.sanger.ac.uk/sb80/crispr_targeted_pipeline.git
-git branch -M main
-git push -uf origin main
-```
-
-## Integrate with your tools
-
-- [ ] [Set up project integrations](https://gitlab.internal.sanger.ac.uk/sb80/crispr_targeted_pipeline/-/settings/integrations)
-
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+### Hardware Requirements
+Runs on a standard computer with enough RAM for in-memory operations (e.g., 8 GB). <br />
+No non-standard hardware required.
 
 ## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+Clone the repository:
+```
+git clone https://github.com/X/X_code.git
+cd X/
+```
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+Create and activate a virtual environment:
+```
+python -m venv venv
+source venv/bin/activate      # On Windows: venv\Scripts\activate
+```
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+Install dependencies:
+```
+pip install -r requirements.txt
+```
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+**Typical install time:** ~10 minutes on a standard desktop with a normal internet connection.
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+## Running the python script
+To run on your own data:
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+1. Copy the example config: `cp config.yaml my_config.yaml`
+2. Edit the parameters (see the table below).
+3. Run: `python3 targeted_CRISPR.py --config my_config.yaml`
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+### Configuration parameters
 
-## License
-For open source projects, say how it is licensed.
+| Parameter        | Description                                       | Example                  |
+|------------------|---------------------------------------------------|--------------------------|
+| `input_counts`   | Path to the counts CSV                            | `demo_data/WT_....csv`   |
+| `input_controls` | Path to the control genes CSV                     | `demo_data/genes_....csv`|
+| `output_dir`     | Directory where results are written              | `output`                 |
+| `index_scheme`   | 2 = use both replicates; 1 = single replicate    | `2`                      |
+| `d`              | Number of gRNAs per gene                          | `4`                      |
+| `alf`            | Significance level (tail of the distribution)     | `0.06`                   |
+| `st`            | Start of x axis     | `-10`                   |
+| `end`            | End of x axis     | `10`                   |
+| `step`            | Bin sizes     | `0.05`                   |
+| `thr_lfchz`            | LFC threshold for volcano plot     | `1.7`                   |
+| `pat1`, `pat2`   | String patterns used to filter genes              | `'chr'`, `'Non'`         |
+| `cond1`, `cond2` | Condition labels              | `'F'`, `'M'`             |
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+### Outputs
+| File Name        | Description                                       |
+|------------------|---------------------------------------------------|
+| `distri_separate_target_controls_{condition_name1/2}.png`   | Individual LFC distributions of non-targetting, zero expressed, intergenic and target genes                        | 
+| `distri_target_controls_{condition_name1/2}.png`   | Overlay of LFC distributions of non-targetting, zero expressed, intergenic and target genes                            | 
+| `distri_zGE_{condition_name1/2}.png`   | Zero Gene Expression distribution of LFC, Z-corrected LFC and MZ-corrected LFC                           | 
+| `gene_distribution_gRNA.png`   | Number of gRNAs attributed to each gene                      | 
+| `gRNA_counts_normalisation.png`   | Total raw (top) and normalised (bottom) read count summed over all gRNAs in each condition                            | 
+| `normalised_counts_mean_med.png`   | Mean versus median of the normalised gRNA counts for each of condition                           | 
+| `p_controls_zGE_{condition_name1+2}.png`   | P-value curve for zero expressed gRNAs                            | 
+| `p_distri_targ_cont_{condition_name1/2}.png`   | Control-calibrated p-value curves of target vs control gRNAs                           | 
+| `target_distri_LFC_Z_corr_Intergenic.png`   | LFC and Z-corrected LFC gRNA distribution for intergenic genes                           |                            | 
+| `target_distri_LFC_Z_corr_Non_Targetting.png`   | LFC and Z-corrected LFC gRNA distribution for non-targetting genes                           |                             | 
+| `target_distri_LFC_Z_corr_Target_genes.png`   | LFC and Z-corrected LFC gRNA distribution for target genes                           | 
+| `volcano_gRNA_{condition_name1/2}.png`   | Volcano plot on gRNA and gene level                            | 
+| `volcano_plot_interactive_{condition_name1/2}.html`   | Interactive volcano plot on gRNA and gene  CSV                            | 
+| `normalised_counts.csv`   | Normalised counts in csv format                            | 
+| `NT_{condition_name1/2}_gRNA.csv`   | LFC, Z-corrected LFC, q-value, condition table for non-targetting genes                            | 
+| `intergenic_{condition_name1/2}_gRNA.csv `   | LFC, Z-corrected LFC, q-value, condition table for intergenic genes                            | 
+| `target_{condition_name1/2}_gRNA.csv`   | LFC, Z-corrected LFC, q-value, condition table for target genes                            | 
+
+
+## Pipeline Steps
+### Module 1
+Normalise raw count data as proportion per million <br />
+Counts number of gRNA per gene/ intergenic <br />
+Compute mean and median of normalised counts <br />
+
+### Module 2
+Compute and analyse LFC distributions of targets and controls (target, intergenic and zero expressed genes) <br />
+Compute q-values, critical values, mean and standard deviation for zero expressed genes controls. <br />
+Compute z for targets and all controls, based on mean and standard deviation of zero expressed genes and controls. <br />
+Determine significant gRNA enrichment/depletion accounting for both FDR and FNR rates <br />
