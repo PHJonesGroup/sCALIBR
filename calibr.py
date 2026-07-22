@@ -148,6 +148,9 @@ T_target, T_control, hist, groups, bin = separate_target_control.separate_target
 # Get recalibrated p/q values for gRNAs
 T_vert_q = p_control_target_implement.p_control_target_implement(T_target, T_control, bin, p_cont)
 
+print(T_target)
+# Get recalibrated p/q values for genes
+
 # -------------------- 2.4 --------------------
 # Compute Z LFC for targets only
 lfc_cols = [c for c in T_vert_q.columns if c.startswith('lfc')]
@@ -156,3 +159,24 @@ Z_t, bin, perc_t, perc_zt = computeZ.computeZ(st, en, step, LFC_t, me_sd)
 T_t = make_tables_Z_two.make_tables_Z_two(T_vert_q, Z_t, control_type)
 
 T_t.to_csv(os.path.join(output_dir, 'target_gRNA.csv'), index=False)
+
+# -------------------- 2.5 --------------------
+# Find extreme sets (enriched/ depleted) and volcano for gRNA and gene
+
+# rep1
+thr_lfch = crit_LR[1]     # right-tail critical LFC (enrichment)
+thr_lfcd = crit_LR[0]     # left-tail critical LFC (depletion)
+thrLFC_d_h = [thr_lfcd, thr_lfch]
+
+(T_gRNA, T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z,
+ indha, indda, indhaz, inddaz) = volcano_gRNA_gene_hits_wt.volcano_gRNA_gene_hits_wt(
+    alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, cond1, control_type, output_dir)
+
+(T_gRNA, T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z,
+ indha, indda, indhaz, inddaz) = volcano_gRNA_gene_hits_wt_interactive.volcano_gRNA_gene_hits_wt_interactive(
+    alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, cond1, control_type, output_dir)
+
+num_hd_LFC_Z = [len(indha), len(indda), len(indhaz), len(inddaz)]
+
+for cat, g in groups.items():
+    g['table'].to_csv(os.path.join(output_dir, f"{cat}_gRNA.csv".replace(' ', '_')), index=False)

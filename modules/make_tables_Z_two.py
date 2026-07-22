@@ -32,11 +32,13 @@ def make_tables_Z_two(target, Z_t, control_type):
     })
 
     for k, lc in enumerate(lfc_cols):
-        rep = lc.replace('lfc_', '')
-        T_wt[f'lfc_{rep}']    = target[lc].values
-        T_wt[f'Z_{control_type}_{rep}']  = Z_t[:, k]
-        # match the Q column for this rep if it exists
-        qc = f'Q_{rep}'
+        # rep_suffix is '' for bare 'lfc', '_60159' for 'lfc_60159'
+        rep_suffix = lc[len('lfc'):]          # includes leading underscore when present
+
+        T_wt[f'lfc{rep_suffix}']                       = target[lc].values
+        T_wt[f'Z_{control_type}_lfc{rep_suffix}']      = Z_t[:, k]
+
+        qc = f'Q{rep_suffix}'
         if qc in target.columns:
             T_wt[qc] = target[qc].values
 

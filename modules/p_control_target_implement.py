@@ -16,7 +16,7 @@ def p_control_target_implement(T_target, T_zGE, binn, p_cont):
     """
 
     #FDR  FRR (false rejection)-correct p-values for both tails of LFC NNT distribution
-    #implement p-controls into LFC (instead of p-targets)
+    #implement p-controls into LFC
 
     # Concatenate tables vertically 
     T_target_zGE = pd.concat([T_target, T_zGE], ignore_index=True)
