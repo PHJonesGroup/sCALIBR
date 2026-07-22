@@ -1,9 +1,6 @@
 import numpy as np
 import pandas as pd
 
-import numpy as np
-import pandas as pd
-
 def filter_pattern_distri(raw_ind, pat, n, st, en, step, cond1, cond2, rep_pairs):
     # 1. Extract genes and gRNAs
     genes = raw_ind.iloc[:, 1].astype(str)

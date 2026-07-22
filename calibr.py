@@ -120,3 +120,8 @@ T_norm_indiv = T_norm_WT.copy()
 # (3) zGE = zero expressed genes
 # (4) Normalised targeted genes
 
+T_target, T_control, groups, bin = separate_target_control.separate_target_control(
+    st, en, step, T_norm_indiv,
+    target_type, control_type,
+    baseline, cond1, rep_pairs, output_dir
+)
