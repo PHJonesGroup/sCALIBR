@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from .make_histo_crit_stats import make_histo_crit_stats
 from .q_val_frequentist_critical import q_val_frequentist_critical
 
-def CTR_stats_zGE(alf, st, en, step, T_zGE, hist, cond1, cond2, condz, control, output_dir):
+def CTR_stats(alf, st, en, step, T_zGE, hist, cond1, cond2, control, output_dir):
     """
     Control vs. target analysis for a single contrast (cond1 vs cond2),
     preserving multiple replicate LFC columns.

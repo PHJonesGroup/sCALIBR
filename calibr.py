@@ -6,14 +6,14 @@ import yaml
 from pathlib import Path
 import argparse
 
-from modules import count_vertical_names, plot_grna_distribution
+from modules import CTR_stats, count_vertical_names, plot_grna_distribution
 from modules import separate_fours_threes_twos_ones_genes_gRNAs
 from modules import normalise_prop
 from modules import norm_table_individ, plot_me_med
 from modules import find_columns_indiv, format_data
 
 from modules import compute_hiss_LFC_rep12, distri_target_contr_plots_all, filter_pattern_distri, make_histo_LFC, separate_target_control, zGE_target_distri
-from modules import compute_p_critLFC, CTR_stats_zGE, make_histo_crit_stats, make_histo_vec_rep12, make_LFC_Z_MZ_tables_two, med_mad_MZNP_2, q_val_frequentist_critical
+from modules import compute_p_critLFC, make_histo_crit_stats, make_histo_vec_rep12, make_LFC_Z_MZ_tables_two, med_mad_MZNP_2, q_val_frequentist_critical
 from modules import implement_p_control_indiv_gRNA, p_control_any_implement, p_control_target_implement, plot_histograms
 from modules import computeZ, make_tables_Z_two, z_p_CTR_any
 from modules import perGene_4_hits_med_horiz, perGene_4_med_horiz, separate_fours_threes_twos_genes, volcano_gRNA_gene_hits_wt_interactive, volcano_gRNA_gene_hits_wt
@@ -59,14 +59,8 @@ step = config["step"]
 thr_lfchz = config["thr_lfchz"]
 thr_lfcdz = -thr_lfchz
 
-# condz   = f'zGE_{cond1}{cond2}'
-# cond11  = 'Intergenic'
-# cond12  = 'Non_Targetting'
-# indiv   = f'{cond1}{cond2}'  
-# cond_id = f'{cond1}_{cond2}'
 sfdr_corr = 0.0001 # constant to avoid log10(0)
 ssc     = 1 # small sample correction count
-
 
 # ============================ MODULE 1 ============================
 raw_ind = pd.read_csv(input_counts)
@@ -120,8 +114,36 @@ T_norm_indiv = T_norm_WT.copy()
 # (3) zGE = zero expressed genes
 # (4) Normalised targeted genes
 
-T_target, T_control, groups, bin = separate_target_control.separate_target_control(
+T_target, T_control, hist, groups, bin = separate_target_control.separate_target_control(
     st, en, step, T_norm_indiv,
     target_type, control_type,
     baseline, cond1, rep_pairs, output_dir
 )
+
+# -------------------- 2.2 --------------------
+# Choose control, compute Z/MZ/crit‑LR, implement q, adjust controls for Z
+(
+    crit_LR, 
+    me_sd, 
+    med_mad, 
+    binn, 
+    p_cont, 
+    hiss_cont, 
+    p_targ, 
+    T_control
+) = CTR_stats.CTR_stats(
+    alf,
+    st,
+    en,
+    step,
+    T_control,          
+    hist,         
+    baseline,          
+    cond1,          
+    control_type,
+    output_dir
+)
+
+# -------------------- 2.3 --------------------
+# Get recalibrated p/q values for gRNAs
+T_vert_q = p_control_target_implement.p_control_target_implement(T_target, T_control, bin, p_cont)

@@ -79,9 +79,10 @@ def separate_target_control(st, en, step, T_norm_indiv,
         # pooled histogram: flatten all rep LFC columns into one distribution
         binn, hiss, perc, LFC, lfc_cols, st1, en1 = compute_hiss_LFC_rep12(tab, st, en, step)
         pooled_perc = np.nanmean(perc, axis=1) if perc.ndim == 2 else perc
-        groups[cat] = {'table': tab, 'perc': pooled_perc}
+        groups[cat] = {'table': tab, 'perc': pooled_perc, 'hiss' : hiss}
 
     T_target  = groups[target_type]['table']
+    hist = groups[target_type]['hiss']
     T_control = groups[control_type]['table'] if control_present else pd.DataFrame(columns=['gRNA', 'gene'])
 
     # plot: target + control + any other categories (skips None automatically)
@@ -94,4 +95,4 @@ def separate_target_control(st, en, step, T_norm_indiv,
         output_dir=output_dir,
     )
 
-    return T_target, T_control, groups, binn
+    return T_target, T_control, hist, groups, binn
