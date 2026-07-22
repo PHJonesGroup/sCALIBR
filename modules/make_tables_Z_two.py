@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def make_tables_Z_two(target, Z_t):
+def make_tables_Z_two(target, Z_t, control_type):
     """
     Build a per-replicate gRNA table with LFC, control-calibrated Z, and Q,
     one set of columns per replicate.
@@ -14,7 +14,7 @@ def make_tables_Z_two(target, Z_t):
 
     Returns
     -------
-    T_wt : DataFrame [gRNA, gene, lfc_<r>, Z_zGE_<r>, Q_<r>, ...] per replicate
+    T_wt : DataFrame [gRNA, gene, lfc_<r>, Z_,control_type>_<r>, Q_<r>, ...] per replicate
     """
     Z_t = np.asarray(Z_t, dtype=float)
     if Z_t.ndim == 1:
@@ -34,7 +34,7 @@ def make_tables_Z_two(target, Z_t):
     for k, lc in enumerate(lfc_cols):
         rep = lc.replace('lfc_', '')
         T_wt[f'lfc_{rep}']    = target[lc].values
-        T_wt[f'Z_zGE_{rep}']  = Z_t[:, k]
+        T_wt[f'Z_{control_type}_{rep}']  = Z_t[:, k]
         # match the Q column for this rep if it exists
         qc = f'Q_{rep}'
         if qc in target.columns:
