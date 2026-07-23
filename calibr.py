@@ -13,7 +13,7 @@ from modules import norm_table_individ, plot_me_med
 from modules import separate_target_control
 from modules import CTR_stats
 from modules import p_control_target_implement
-from modules import computeZ, make_tables_Z
+from modules import computeZ, make_tables_Z, plot_histograms
 from modules import volcano_grna_gene_hits, volcano_grna_gene_hits_interactive
 
 def parse_args():
@@ -152,24 +152,24 @@ T_vert_q = p_control_target_implement.p_control_target_implement(T_target, T_con
 lfc_cols = [c for c in T_vert_q.columns if c.startswith('lfc')]
 LFC_t = T_vert_q[lfc_cols].to_numpy(dtype=float)     # (n_gRNA x 4)
 Z_t, bin, perc_t, perc_zt = computeZ.computeZ(st, en, step, LFC_t, me_sd)
+plot_histograms.plot_histograms(bin, perc_t, perc_zt, baseline, cond1, "Target genes", st, en, output_dir)
+
 T_t = make_tables_Z.make_tables_Z(T_vert_q, Z_t, control_type)
 
-T_t.to_csv(os.path.join(output_dir, 'target_gRNA.csv'), index=False)
+T_t.to_csv(os.path.join(output_dir, f'target_{cond1}_{baseline}_gRNA.csv'), index=False)
 
 # -------------------- 2.5 --------------------
 # Find extreme sets (enriched/ depleted) and volcano for gRNA and gene
-
-# rep1
 thr_lfch = crit_LR[1]     # right-tail critical LFC (enrichment)
 thr_lfcd = crit_LR[0]     # left-tail critical LFC (depletion)
 thrLFC_d_h = [thr_lfcd, thr_lfch]
 
 (T_gRNA, T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z,
  indha, indda, indhaz, inddaz) = volcano_grna_gene_hits.volcano_grna_gene_hits(
-    alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, cond1, control_type, output_dir)
+    alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, baseline, cond1, control_type, output_dir)
 
 (T_gRNA, T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z,
  indha, indda, indhaz, inddaz) = volcano_grna_gene_hits_interactive.volcano_grna_gene_hits_interactive(
-    alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, cond1, control_type, output_dir)
+    alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, baseline, cond1, control_type, output_dir)
 
 num_hd_LFC_Z = [len(indha), len(indda), len(indhaz), len(inddaz)]

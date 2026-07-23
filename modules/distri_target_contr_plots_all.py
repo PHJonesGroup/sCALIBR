@@ -38,7 +38,7 @@ def distri_target_contr_plots_all(binn, category_percs, highlight, title, output
         if k == n:
             plt.xlabel('LFC', fontsize=12)
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f"distri_separate_{title}.png"),
+    plt.savefig(os.path.join(output_dir, f"distri_gene_types_{title}.png"),
                 dpi=300, bbox_inches="tight")
     plt.close()
 
@@ -53,7 +53,7 @@ def distri_target_contr_plots_all(binn, category_percs, highlight, title, output
     plt.ylabel('%', fontsize=12)
     plt.legend()
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f"distri_overlaid_{title}.png"),
+    plt.savefig(os.path.join(output_dir, f"distri_gene_types_overlaid_{title}.png"),
                 dpi=300, bbox_inches="tight")
     plt.close()
     return 1

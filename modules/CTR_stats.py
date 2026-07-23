@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from .make_histo_crit_stats import make_histo_crit_stats
 from .q_val_frequentist_critical import q_val_frequentist_critical
 
-def CTR_stats(alf, st, en, step, T_zGE, hist, cond1, cond2, control, output_dir):
+def CTR_stats(alf, st, en, step, T_zGE, hist, baseline, cond, control, output_dir):
     """
     Control vs. target analysis for a single contrast (cond1 vs cond2),
     preserving multiple replicate LFC columns.
@@ -27,7 +27,7 @@ def CTR_stats(alf, st, en, step, T_zGE, hist, cond1, cond2, control, output_dir)
 
     # 1. Pooled-control histogram & stats
     (binn, hiss_z, perc, crit_LR, bin_pz, med_mad, me_sd, mod, MZ, Z, n_z
-    ) = make_histo_crit_stats(alf, st, en, step, T_zGE, cond1, cond2, control, output_dir)
+    ) = make_histo_crit_stats(alf, st, en, step, T_zGE, baseline, cond, control, output_dir)
 
     # 2. Control table passed through unchanged (gRNA, gene, per-rep LFCs)
     T_zGE_out = T_zGE.copy()
@@ -46,12 +46,12 @@ def CTR_stats(alf, st, en, step, T_zGE, hist, cond1, cond2, control, output_dir)
     plt.figure()
     plt.plot(binn, p_cont, color="0.5", linestyle="--", label=f"control ({control})")
     plt.plot(binn, p_targ, color="C3", linestyle="-",  label="target")
-    plt.title(f"Target vs. {control} gRNAs ({cond1} vs {cond2})")
+    plt.title(f"Target vs. {control} gRNAs ({cond} vs {baseline})")
     plt.xlabel("LFC bin")
     plt.ylabel("Probability")
     plt.legend()
     plt.grid(True)
-    plt.savefig(os.path.join(output_dir, f"p_distri_targ_cont_{cond1}_vs_{cond2}.png"),
+    plt.savefig(os.path.join(output_dir, f"p_distri_targ_cont_{cond}_vs_{baseline}.png"),
                 dpi=300, bbox_inches="tight")
     plt.close()
 

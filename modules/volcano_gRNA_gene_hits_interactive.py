@@ -20,7 +20,7 @@ def _collapse(T_vert, prefix, exact=None):
     return T_vert[cols].astype(float).median(axis=1)
 
 def volcano_grna_gene_hits_interactive(
-    alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, cond, control_type, output_dir
+    alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, baseline, cond, control_type, output_dir
 ):
     genes  = T_vert['gene']
     # collapse reps to median per gRNA (or use the single column if no reps)
@@ -31,10 +31,10 @@ def volcano_grna_gene_hits_interactive(
 
     # 2x2 grid: row1 = per gRNA (LFC, Z), row2 = per gene (LFC, Z)
     fig = make_subplots(rows=2, cols=2, subplot_titles=(
-        f"Volcano per gRNA (LFC): {cond}",
-        f"Volcano per gRNA (Z): {cond}",
-        f"Volcano per gene (LFC): {cond}",
-        f"Volcano per gene (Z): {cond}",
+        f"Volcano per gRNA",
+        f"Volcano per gRNA",
+        f"Volcano per gene",
+        f"Volcano per gene",
     ))
 
     # helper to add the three trace layers (all / hits / depleted) to a cell
@@ -101,14 +101,14 @@ def volcano_grna_gene_hits_interactive(
 
     # axis titles
     fig.update_xaxes(title_text="LFC", row=1, col=1)
-    fig.update_xaxes(title_text="Z-normalised LFC", row=1, col=2)
+    fig.update_xaxes(title_text="Z-corrected LFC", row=1, col=2)
     fig.update_xaxes(title_text="LFC", row=2, col=1)
-    fig.update_xaxes(title_text="Z-normalised LFC", row=2, col=2)
+    fig.update_xaxes(title_text="Z-corrected LFC", row=2, col=2)
     for r in (1, 2):
         for c in (1, 2):
             fig.update_yaxes(title_text="-log10(FDR)", row=r, col=c)
 
-    fig.update_layout(title=f"Interactive Volcano Plots: {cond}", showlegend=True)
-    fig.write_html(os.path.join(output_dir, f"volcano_plot_interactive_{cond}.html"))
+    fig.update_layout(title=f"{cond} vs {baseline}", showlegend=True)
+    fig.write_html(os.path.join(output_dir, f"volcano_plot_interactive_{cond}_vs_{baseline}.html"))
 
     return T_gRNA, T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z, indha, indda, indhaz, inddaz

@@ -10,7 +10,7 @@ alf             : 0.06                                # significance level of ri
 target_type     : 'GOI'    
 control_type    : 'Non-targeting'
 baseline        : 'T0'                                #baseline condition
-cond1           : '5FU'                               #condition 1
+cond            : '5FU'                               #treatment condition
 rep_pairs       : ['60159','60160','60161','60162']   #replicate names
 
 # Plotting parameters

@@ -16,7 +16,7 @@ def general_volcano(alf, sfdr_corr, thr_scoreh, thr_scored, score, fdr, cond, ge
 
     if plot and ax is not None:
         ma = max(5, np.max(LPV) + 1 if LPV.size > 0 else 5)
-        ax.plot(score, LPV, 'pk', markersize=4, label='All genes')
+        ax.plot(score, LPV, 'pk', markersize=4, label='Not significant')
         ax.grid(True)
         ax.set_ylabel('-Log10 FDR', fontsize=14)
         ax.set_xlabel('score', fontsize=14)

@@ -3,17 +3,17 @@ import matplotlib.pyplot as plt
 import os
 from .q_val_frequentist_critical import q_val_frequentist_critical
 
-def compute_p_critLFC(alf, binn, hiss, cond1, cond2, control, output_dir):
+def compute_p_critLFC(alf, binn, hiss, baseline, cond, control, output_dir):
     """
     Compute the p-curve and critical LFC values for a single LFC distribution
-    (contrast cond1 vs cond2).
+    (contrast cond vs baseline).
 
     Parameters
     ----------
     alf   : significance level
     binn  : bin edges/centers for the LFC histogram
     hiss  : histogram counts (single series)
-    cond1, cond2 : condition labels for the plot title
+    baseline, cond : condition labels for the plot title
 
     Returns
     -------
@@ -27,13 +27,13 @@ def compute_p_critLFC(alf, binn, hiss, cond1, cond2, control, output_dir):
 
     # Plot the single p-curve
     plt.figure(figsize=(8, 6))
-    plt.plot(binn, p, 'b', label=f'{cond1} vs {cond2}')
+    plt.plot(binn, p, 'b', label=f'{cond} vs {baseline}')
     plt.grid(True)
     plt.xlabel('LFC')
     plt.ylabel('Probability')
     plt.title('Zero Gene Expression gRNAs', fontsize=14)
     plt.legend()
-    plt.savefig(os.path.join(output_dir, f"p_controls_{control}_{cond1}_vs_{cond2}.png"),
+    plt.savefig(os.path.join(output_dir, f"p_controls_{control}_{cond}_vs_{baseline}.png"),
                 dpi=300, bbox_inches="tight")
     plt.close()
 
