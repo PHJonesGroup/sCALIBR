@@ -8,7 +8,7 @@ import argparse
 
 from modules import count_vertical_names, plot_grna_distribution
 from modules import separate_genes_by_grna_count
-from modules import normalise_prop
+from modules import normalise_prop, plot_gene_variability
 from modules import norm_table_individ, plot_me_med
 from modules import separate_target_control
 from modules import CTR_stats
@@ -88,6 +88,7 @@ raw_ind_f = T_vert.iloc[ind_keep, :].reset_index(drop=True)
 # -------------------- 1.3 --------------------
 # Normalise (CPM) counts as percentage within a column
 norm_dat = normalise_prop.normalise_prop(ssc, raw_ind_f, output_dir) 
+plot_gene_variability.plot_gene_variability(norm_dat, output_dir, baseline, cond1, target_type, rep_pairs)
 
 # -------------------- 1.4 --------------------
 # Format normalised counts, compute mean and median of normalised counts
