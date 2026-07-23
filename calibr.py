@@ -6,7 +6,7 @@ import yaml
 from pathlib import Path
 import argparse
 
-from modules import CTR_stats, count_vertical_names, plot_grna_distribution
+from modules import CTR_stats, count_vertical_names, perGene_hits_med_horiz, perGene_med_horiz, plot_grna_distribution
 from modules import separate_fours_threes_twos_ones_genes_gRNAs
 from modules import normalise_prop
 from modules import norm_table_individ, plot_me_med
@@ -16,7 +16,7 @@ from modules import compute_hiss_LFC_rep12, distri_target_contr_plots_all, filte
 from modules import compute_p_critLFC, make_histo_crit_stats, make_histo_vec_rep12, make_LFC_Z_MZ_tables_two, med_mad_MZNP_2, q_val_frequentist_critical
 from modules import implement_p_control_indiv_gRNA, p_control_any_implement, p_control_target_implement, plot_histograms
 from modules import computeZ, make_tables_Z_two, z_p_CTR_any
-from modules import perGene_4_hits_med_horiz, perGene_4_med_horiz, separate_fours_threes_twos_genes, volcano_gRNA_gene_hits_wt_interactive, volcano_gRNA_gene_hits_wt
+from modules import separate_fours_threes_twos_genes, volcano_gRNA_gene_hits_wt_interactive, volcano_gRNA_gene_hits_wt
 from modules import separate_genes_by_grna_count
 
 def parse_args():
@@ -44,7 +44,6 @@ input_counts = Path(config["input_counts"])
 output_dir = Path(config["output_dir"])
 rep = config["rep"]
 keep_counts = config["keep_counts"]
-control = config["control"]
 alf = config["alf"]
 
 target_type = config["target_type"]
@@ -73,7 +72,7 @@ gene = raw_ind.iloc[:, 1].values  # second column (gene names)
 # filter dataframe for count
 keep = list(T_vert.columns[:3]) + [
     c for c in T_vert.columns[3:]
-    if c == baseline or c == cond1
+    if c.startswith(f"{baseline}") or c.startswith(f"{cond1}")
 ]
 T_vert = T_vert[keep]
 
@@ -148,9 +147,6 @@ T_target, T_control, hist, groups, bin = separate_target_control.separate_target
 # Get recalibrated p/q values for gRNAs
 T_vert_q = p_control_target_implement.p_control_target_implement(T_target, T_control, bin, p_cont)
 
-print(T_target)
-# Get recalibrated p/q values for genes
-
 # -------------------- 2.4 --------------------
 # Compute Z LFC for targets only
 lfc_cols = [c for c in T_vert_q.columns if c.startswith('lfc')]
@@ -167,7 +163,7 @@ T_t.to_csv(os.path.join(output_dir, 'target_gRNA.csv'), index=False)
 thr_lfch = crit_LR[1]     # right-tail critical LFC (enrichment)
 thr_lfcd = crit_LR[0]     # left-tail critical LFC (depletion)
 thrLFC_d_h = [thr_lfcd, thr_lfch]
-
+print(T_t)
 (T_gRNA, T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z,
  indha, indda, indhaz, inddaz) = volcano_gRNA_gene_hits_wt.volcano_gRNA_gene_hits_wt(
     alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, cond1, control_type, output_dir)
@@ -177,6 +173,3 @@ thrLFC_d_h = [thr_lfcd, thr_lfch]
     alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, cond1, control_type, output_dir)
 
 num_hd_LFC_Z = [len(indha), len(indda), len(indhaz), len(inddaz)]
-
-for cat, g in groups.items():
-    g['table'].to_csv(os.path.join(output_dir, f"{cat}_gRNA.csv".replace(' ', '_')), index=False)

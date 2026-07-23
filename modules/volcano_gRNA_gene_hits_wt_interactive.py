@@ -2,15 +2,30 @@ import plotly.graph_objs as go
 import os
 from plotly.subplots import make_subplots
 from .general_volcano_interactive import general_volcano_interactive
-from .perGene_4_hits_med_horiz import perGene_4_hits_med_horiz
+from .perGene_hits_med_horiz import perGene_hits_med_horiz
+
+def _collapse(T_vert, prefix, exact=None):
+    """
+    Return a single per-gRNA series for a quantity that may be split across reps.
+    - exact: if that exact column exists (no-rep case), use it directly.
+    - otherwise: median across all columns starting with `prefix` (rep case).
+    """
+    if exact is not None and exact in T_vert.columns:
+        return T_vert[exact].astype(float)
+    cols = [c for c in T_vert.columns if c.startswith(prefix)]
+    if not cols:
+        raise KeyError(f"No columns for '{exact or prefix}'. Columns: {T_vert.columns.tolist()}")
+    return T_vert[cols].astype(float).median(axis=1)
 
 def volcano_gRNA_gene_hits_wt_interactive(
     alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, cond, control_type, output_dir
 ):
     genes  = T_vert['gene']
-    scoreL = T_vert['lfc']                          # raw per-gRNA LFC
-    scoreZ = T_vert[f'Z_{control_type}_lfc']        # standardized per-gRNA LFC
-    fdr    = T_vert['Q']
+    # collapse reps to median per gRNA (or use the single column if no reps)
+    scoreL = _collapse(T_vert, prefix="lfc",                     exact="lfc")
+    scoreZ = _collapse(T_vert, prefix=f"Z_{control_type}_lfc",   exact=f"Z_{control_type}_lfc")
+    fdr    = _collapse(T_vert, prefix="Q",                       exact="Q")
+
 
     # 2x2 grid: row1 = per gRNA (LFC, Z), row2 = per gene (LFC, Z)
     fig = make_subplots(rows=2, cols=2, subplot_titles=(
@@ -58,8 +73,8 @@ def volcano_gRNA_gene_hits_wt_interactive(
     (
         T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z,
         indha_gene, indda_gene, indhaz, inddaz
-    ) = perGene_4_hits_med_horiz(
-        alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, cond, plot=False
+    ) = perGene_hits_med_horiz(
+        alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, cond, control_type, plot=False
     )
 
     if not T_lfc_z_q_med.empty:

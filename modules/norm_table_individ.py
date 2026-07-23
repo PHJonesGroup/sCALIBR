@@ -16,7 +16,7 @@ def norm_table_individ(norm_dat, raw_ind, baseline, cond1, rep=None):
     """
     def build_table(cond):
         # all data columns belonging to this condition, in original order
-        cond_cols = [c for c in norm_dat.columns if c == cond]
+        cond_cols = [c for c in norm_dat.columns if c.startswith(f"{cond}")]
         if not cond_cols:
             raise ValueError(f"No columns found for condition '{cond}'")
 
