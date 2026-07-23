@@ -14,7 +14,7 @@ from modules import separate_target_control
 from modules import CTR_stats
 from modules import p_control_target_implement
 from modules import computeZ, make_tables_Z
-from modules import volcano_gRNA_gene_hits, volcano_gRNA_gene_hits_interactive
+from modules import volcano_grna_gene_hits, volcano_grna_gene_hits_interactive
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run the pipeline.")
@@ -164,11 +164,11 @@ thr_lfcd = crit_LR[0]     # left-tail critical LFC (depletion)
 thrLFC_d_h = [thr_lfcd, thr_lfch]
 
 (T_gRNA, T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z,
- indha, indda, indhaz, inddaz) = volcano_gRNA_gene_hits.volcano_gRNA_gene_hits(
+ indha, indda, indhaz, inddaz) = volcano_grna_gene_hits.volcano_grna_gene_hits(
     alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, cond1, control_type, output_dir)
 
 (T_gRNA, T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z,
- indha, indda, indhaz, inddaz) = volcano_gRNA_gene_hits_interactive.volcano_gRNA_gene_hits_interactive(
+ indha, indda, indhaz, inddaz) = volcano_grna_gene_hits_interactive.volcano_grna_gene_hits_interactive(
     alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, cond1, control_type, output_dir)
 
 num_hd_LFC_Z = [len(indha), len(indda), len(indhaz), len(inddaz)]

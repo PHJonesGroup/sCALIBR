@@ -18,7 +18,7 @@ def _collapse(T_vert, prefix, exact=None):
         raise KeyError(f"No columns for '{exact or prefix}'. Columns: {T_vert.columns.tolist()}")
     return T_vert[cols].astype(float).median(axis=1)
 
-def volcano_gRNA_gene_hits(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz,
+def volcano_grna_gene_hits(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz,
                               T_vert, cond, control_type, output_dir):
     genes  = T_vert['gene']
     # collapse reps to median per gRNA (or use the single column if no reps)
