@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-def perGene_med_horiz(T_vert, control_type):
+def pergene_med_horiz(T_vert, control_type):
     """
     Per-gene median/mean of LFC, Z, Q, computed from a per-gRNA table that may
     have any number of gRNAs per gene and any number of replicate columns.

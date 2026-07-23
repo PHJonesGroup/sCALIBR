@@ -1,4 +1,4 @@
-from .compute_hiss_LFC_rep12 import compute_hiss_LFC_rep12
+from .compute_hiss_LFC import compute_hiss_LFC
 from .distri_target_contr_plots_all import distri_target_contr_plots_all
 import numpy as np
 import pandas as pd
@@ -66,7 +66,6 @@ def separate_target_control(st, en, step, T_norm_indiv,
 
     control_present = control_type in categories
     if not control_present:
-        # e.g. dataset has no zero-expressed genes — warn, don't crash
         print(f"[warning] control_type '{control_type}' not found in data "
               f"(available: {categories}). No control group built for it.")
 
@@ -77,7 +76,7 @@ def separate_target_control(st, en, step, T_norm_indiv,
         rows = T_norm_indiv[gt == cat]
         tab = _lfc_table(rows, baseline, cond1, rep_pairs)
         # pooled histogram: flatten all rep LFC columns into one distribution
-        binn, hiss, perc, LFC, lfc_cols, st1, en1 = compute_hiss_LFC_rep12(tab, st, en, step)
+        binn, hiss, perc, LFC, lfc_cols, st1, en1 = compute_hiss_LFC(tab, st, en, step)
         pooled_perc = np.nanmean(perc, axis=1) if perc.ndim == 2 else perc
         groups[cat] = {'table': tab, 'perc': pooled_perc, 'hiss' : hiss}
 

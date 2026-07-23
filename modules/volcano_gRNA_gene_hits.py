@@ -1,10 +1,9 @@
 import matplotlib.pyplot as plt
 import os
-from .general_volcano import general_volcano
-from .perGene_hits_med_horiz import perGene_hits_med_horiz
 import numpy as np
 import pandas as pd
-
+from .general_volcano import general_volcano
+from .pergene_hits_med_horiz import pergene_hits_med_horiz
 
 def _collapse(T_vert, prefix, exact=None):
     """
@@ -19,7 +18,7 @@ def _collapse(T_vert, prefix, exact=None):
         raise KeyError(f"No columns for '{exact or prefix}'. Columns: {T_vert.columns.tolist()}")
     return T_vert[cols].astype(float).median(axis=1)
 
-def volcano_gRNA_gene_hits_wt(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz,
+def volcano_gRNA_gene_hits(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz,
                               T_vert, cond, control_type, output_dir):
     genes  = T_vert['gene']
     # collapse reps to median per gRNA (or use the single column if no reps)
@@ -51,7 +50,7 @@ def volcano_gRNA_gene_hits_wt(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr
     (
         T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z,
         indha_gene, indda_gene, indhaz, inddaz
-    ) = perGene_hits_med_horiz(
+    ) = pergene_hits_med_horiz(
         alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, cond, control_type, plot=False
     )
 

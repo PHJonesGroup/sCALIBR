@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import stats
 
-def med_mad_MZNP_2(GE_vec):
+def med_mad_MZNP(GE_vec):
     """
     Compute median, MAD, modified Z-scores, mean, std, and mode for a vector.
     Implements Leys 2013 robust Z-score method.

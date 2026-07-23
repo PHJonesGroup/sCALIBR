@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from .make_histo_LFC import make_histo_LFC
 
-def compute_hiss_LFC_rep12(chr_lfc, st, en, step):
+def compute_hiss_LFC(chr_lfc, st, en, step):
     """
     Compute histograms for individual gRNAs across one or more LFC columns.
 

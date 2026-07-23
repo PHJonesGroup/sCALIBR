@@ -1,5 +1,5 @@
 import pandas as pd
-from .implement_p_control_indiv_gRNA import implement_p_control_indiv_gRNA
+from .implement_p_control_indiv_grna import implement_p_control_indiv_grna
 
 def p_control_target_implement(T_target, T_zGE, binn, p_cont):
     """
@@ -25,6 +25,6 @@ def p_control_target_implement(T_target, T_zGE, binn, p_cont):
     p_contr = p_cont
 
     # Call the function that assigns p/q values based on LFC bins
-    T_q_verti = implement_p_control_indiv_gRNA(T_target_zGE, binn, p_contr)
+    T_q_verti = implement_p_control_indiv_grna(T_target_zGE, binn, p_contr)
     
     return T_q_verti

@@ -1,4 +1,5 @@
 import numpy as np
+
 def make_histo_LFC(step, vec_num, st, en):
     """Histogram counts and percentages on a fixed bin grid (st..en, width step)."""
     vec_num = np.asarray(vec_num, dtype=float)

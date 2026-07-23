@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from .make_histo_LFC import make_histo_LFC
 from .compute_p_critLFC import compute_p_critLFC
-from .med_mad_MZNP_2 import med_mad_MZNP_2
+from .med_mad_MZNP import med_mad_MZNP
 from .plot_three_panels import plot_three_panels
 
 def make_histo_crit_stats(alf, st, en, step, T_zGE, cond1, cond2, control, output_dir):
@@ -26,7 +26,7 @@ def make_histo_crit_stats(alf, st, en, step, T_zGE, cond1, cond2, control, outpu
     bin_p, crit_LR = compute_p_critLFC(alf, bin_, his, cond1, cond2, control, output_dir)
 
     # 4. Robust stats, Z / MZ on the pooled control LFCs
-    med_mad, MZZ, MZ, Z, me_sd, mod = med_mad_MZNP_2(LFC)
+    med_mad, MZZ, MZ, Z, me_sd, mod = med_mad_MZNP(LFC)
 
     # 5. Diagnostic plot
     _, _, perc_z  = make_histo_LFC(step, Z,  st, en)

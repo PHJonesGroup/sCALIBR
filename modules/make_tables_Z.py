@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def make_tables_Z_two(target, Z_t, control_type):
+def make_tables_Z(target, Z_t, control_type):
     """
     Build a per-replicate gRNA table with LFC, control-calibrated Z, and Q,
     one set of columns per replicate.

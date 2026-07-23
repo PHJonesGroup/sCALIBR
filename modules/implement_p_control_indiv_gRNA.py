@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-def implement_p_control_indiv_gRNA(T_gRNA_LFC, binn, p_contr):
+def implement_p_control_indiv_grna(T_gRNA_LFC, binn, p_contr):
     """
     Implement p-controls by LFC targets (instead of p-targets) at gRNA level.
     

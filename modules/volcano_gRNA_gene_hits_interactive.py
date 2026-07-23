@@ -1,8 +1,10 @@
 import plotly.graph_objs as go
 import os
+import numpy as np
+import pandas as pd
 from plotly.subplots import make_subplots
 from .general_volcano_interactive import general_volcano_interactive
-from .perGene_hits_med_horiz import perGene_hits_med_horiz
+from .pergene_hits_med_horiz import pergene_hits_med_horiz
 
 def _collapse(T_vert, prefix, exact=None):
     """
@@ -17,7 +19,7 @@ def _collapse(T_vert, prefix, exact=None):
         raise KeyError(f"No columns for '{exact or prefix}'. Columns: {T_vert.columns.tolist()}")
     return T_vert[cols].astype(float).median(axis=1)
 
-def volcano_gRNA_gene_hits_wt_interactive(
+def volcano_gRNA_gene_hits_interactive(
     alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, cond, control_type, output_dir
 ):
     genes  = T_vert['gene']
@@ -73,7 +75,7 @@ def volcano_gRNA_gene_hits_wt_interactive(
     (
         T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z,
         indha_gene, indda_gene, indhaz, inddaz
-    ) = perGene_hits_med_horiz(
+    ) = pergene_hits_med_horiz(
         alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, cond, control_type, plot=False
     )
 

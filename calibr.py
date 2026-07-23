@@ -6,18 +6,15 @@ import yaml
 from pathlib import Path
 import argparse
 
-from modules import CTR_stats, count_vertical_names, perGene_hits_med_horiz, perGene_med_horiz, plot_grna_distribution
-from modules import separate_fours_threes_twos_ones_genes_gRNAs
+from modules import count_vertical_names, plot_grna_distribution
+from modules import separate_genes_by_grna_count
 from modules import normalise_prop
 from modules import norm_table_individ, plot_me_med
-from modules import find_columns_indiv, format_data
-
-from modules import compute_hiss_LFC_rep12, distri_target_contr_plots_all, filter_pattern_distri, make_histo_LFC, separate_target_control, zGE_target_distri
-from modules import compute_p_critLFC, make_histo_crit_stats, make_histo_vec_rep12, make_LFC_Z_MZ_tables_two, med_mad_MZNP_2, q_val_frequentist_critical
-from modules import implement_p_control_indiv_gRNA, p_control_any_implement, p_control_target_implement, plot_histograms
-from modules import computeZ, make_tables_Z_two, z_p_CTR_any
-from modules import separate_fours_threes_twos_genes, volcano_gRNA_gene_hits_wt_interactive, volcano_gRNA_gene_hits_wt
-from modules import separate_genes_by_grna_count
+from modules import separate_target_control
+from modules import CTR_stats
+from modules import p_control_target_implement
+from modules import computeZ, make_tables_Z
+from modules import volcano_gRNA_gene_hits, volcano_gRNA_gene_hits_interactive
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run the pipeline.")
@@ -91,20 +88,22 @@ raw_ind_f = T_vert.iloc[ind_keep, :].reset_index(drop=True)
 # -------------------- 1.3 --------------------
 # Normalise (CPM) counts as percentage within a column
 norm_dat = normalise_prop.normalise_prop(ssc, raw_ind_f, output_dir) 
+
 # -------------------- 1.4 --------------------
 # Format normalised counts, compute mean and median of normalised counts
 tab_norm_T0, tab_norm_T1 = norm_table_individ.norm_table_individ(norm_dat, raw_ind_f, baseline, cond1, rep)
 
 me_med_T0_T1 = plot_me_med.plot_me_med(tab_norm_T0, tab_norm_T1, output_dir)
 
-T_norm_WT = pd.concat([tab_norm_T0, tab_norm_T1.iloc[:, 3:(3 + 2*rep)]], axis=1)
-T_norm_WT.to_csv(os.path.join(output_dir, 'normalised_counts.csv'), index=False)
+T_norm = pd.concat([tab_norm_T0, tab_norm_T1.iloc[:, 3:(3 + 2*rep)]], axis=1)
+T_norm.to_csv(os.path.join(output_dir, 'normalised_counts.csv'), index=False)
 
-norm_tab = T_norm_WT.copy()
+norm_tab = T_norm.copy()
 column_labels = norm_tab.columns.tolist()
 
 # ============================ MODULE 2 ============================
-T_norm_indiv = T_norm_WT.copy()
+T_norm_indiv = T_norm.copy()
+
 # -------------------- 2.1 --------------------
 # Separate and show controls, NTs, zGE, and normalised counts
 # Distribution of:
@@ -152,7 +151,7 @@ T_vert_q = p_control_target_implement.p_control_target_implement(T_target, T_con
 lfc_cols = [c for c in T_vert_q.columns if c.startswith('lfc')]
 LFC_t = T_vert_q[lfc_cols].to_numpy(dtype=float)     # (n_gRNA x 4)
 Z_t, bin, perc_t, perc_zt = computeZ.computeZ(st, en, step, LFC_t, me_sd)
-T_t = make_tables_Z_two.make_tables_Z_two(T_vert_q, Z_t, control_type)
+T_t = make_tables_Z.make_tables_Z(T_vert_q, Z_t, control_type)
 
 T_t.to_csv(os.path.join(output_dir, 'target_gRNA.csv'), index=False)
 
@@ -163,13 +162,13 @@ T_t.to_csv(os.path.join(output_dir, 'target_gRNA.csv'), index=False)
 thr_lfch = crit_LR[1]     # right-tail critical LFC (enrichment)
 thr_lfcd = crit_LR[0]     # left-tail critical LFC (depletion)
 thrLFC_d_h = [thr_lfcd, thr_lfch]
-print(T_t)
+
 (T_gRNA, T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z,
- indha, indda, indhaz, inddaz) = volcano_gRNA_gene_hits_wt.volcano_gRNA_gene_hits_wt(
+ indha, indda, indhaz, inddaz) = volcano_gRNA_gene_hits.volcano_gRNA_gene_hits(
     alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, cond1, control_type, output_dir)
 
 (T_gRNA, T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z,
- indha, indda, indhaz, inddaz) = volcano_gRNA_gene_hits_wt_interactive.volcano_gRNA_gene_hits_wt_interactive(
+ indha, indda, indhaz, inddaz) = volcano_gRNA_gene_hits_interactive.volcano_gRNA_gene_hits_interactive(
     alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, cond1, control_type, output_dir)
 
 num_hd_LFC_Z = [len(indha), len(indda), len(indhaz), len(inddaz)]
