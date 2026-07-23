@@ -8,16 +8,14 @@ def plot_histograms(binn, perc_t1, perc_zt1, baseline, cond1, gene_type, st, en,
     plt.subplot(2, 1, 1)
     plt.bar(binn, perc_t1, color='k')
     plt.grid(True)
-    plt.title(f'LFC distri {cond1} vs {baseline}')
     plt.xlim([st, en])
     plt.xlabel('LFC')
 
     plt.subplot(2, 1, 2)
     plt.bar(binn, perc_zt1, color='g')
     plt.grid(True)
-    plt.title(f'Z LFC distri {cond1} vs {baseline}')
     plt.xlim([st, en])
-    plt.xlabel('LFC Z-normalised')
+    plt.xlabel('Z-corrected LFC')
 
 
     plt.suptitle(f'gRNA distribution: {cond1} vs {baseline}', fontsize=14)
