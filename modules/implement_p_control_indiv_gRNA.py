@@ -1,17 +1,22 @@
 import numpy as np
 import pandas as pd
 
-def implement_p_control_indiv_grna(T_gRNA_LFC, binn, p_contr):
+def implement_p_control_indiv_grna(T_gRNA_LFC, binn, p_cont):
     """
     Implement p-controls by LFC targets (instead of p-targets) at gRNA level.
     
-    Parameters:
-    - T_gRNA_LFC: pd.DataFrame with columns ['gRNA', 'gene', 'LFCM', 'LFCF']
-    - binn: array-like, bin edges
-    - p_contr: array-like, p/q values corresponding to binn for LFC
-    
-    Returns:
-    - T_q_vertical: pd.DataFrame with columns ['gRNA', 'gene', 'lfc', 'Q']
+    Parameters
+    ----------
+    T_target : pandas.DataFrame
+        Target gRNA LFC table: [gRNA, gene, lfc(_<rep>)...].
+    binn : array-like
+        Histogram bin edges.
+    p_cont : array-like
+        Per-bin control p-values (1-D), aligned to ``binn``.    
+    Returns
+    -------
+    out : pandas.DataFrame
+            [gRNA, gene, lfc(_<rep>)..., Q(_<rep>)...] with control-calibrated q-values.
     """
     #implement p-controls by LFC targets (instead of p-tagets)'
     lfc_cols = [c for c in T_gRNA_LFC.columns if c.startswith('lfc')]
@@ -28,7 +33,7 @@ def implement_p_control_indiv_grna(T_gRNA_LFC, binn, p_contr):
         qq = np.full(len(LFC), np.nan)
         for i in range(len(binn) - 1):
             idx = (LFC > binn[i]) & (LFC <= binn[i + 1])
-            qq[idx] = p_contr[i]
+            qq[idx] = p_cont[i]
 
         out[f'lfc{suffix}'] = LFC
         out[f'Q{suffix}']   = qq
