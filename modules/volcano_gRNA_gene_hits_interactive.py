@@ -111,4 +111,4 @@ def volcano_grna_gene_hits_interactive(
     fig.update_layout(title=f"{cond} vs {baseline}", showlegend=True)
     fig.write_html(os.path.join(output_dir, f"volcano_plot_interactive_{cond}_vs_{baseline}.html"))
 
-    return T_gRNA, T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z, indha, indda, indhaz, inddaz
+    return 1
