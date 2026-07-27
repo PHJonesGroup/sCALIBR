@@ -30,9 +30,8 @@ def med_mad_MZNP(GE_vec):
     GE_vec = np.array(GE_vec)
     med = np.median(GE_vec)
     
-    # scipy.stats.mode returns mode and count; mode is an array
     mode_result = stats.mode(GE_vec, nan_policy='omit')
-    mod = mode_result.mode.item()  # safely get the scalar value from numpy array
+    mod = mode_result.mode.item() 
     
     b = 1.4826  # scale factor for MAD assuming normal distribution
 
@@ -44,7 +43,6 @@ def med_mad_MZNP(GE_vec):
     me_sd = [np.mean(GE_vec), np.std(GE_vec, ddof=1)]
 
     # Modified Z-scores
-    # Avoid division by zero if mad or mad2 is zero:
     if mad == 0:
         MZ = np.zeros_like(GE_vec)
     else:

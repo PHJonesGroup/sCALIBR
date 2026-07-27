@@ -7,22 +7,46 @@ from .q_val_frequentist_critical import q_val_frequentist_critical
 
 def CTR_stats(alf, st, en, step, T_zGE, hist, baseline, cond, control, output_dir):
     """
-    Control vs. target analysis for a single contrast (cond1 vs cond2),
-    preserving multiple replicate LFC columns.
+    Calibrate a control null and score targets against it.
 
-    T_zGE : [gRNA, gene, lfc_<r1>, lfc_<r2>, ...]  (control table)
-    hist  : target histogram (1-D, or 2-D bins x reps -> pooled here)
+    Parameters
+    ----------
+    alf : float
+        Significance level for the critical-value / p-curve calculation.
+    st, en : float
+        Lower / upper bounds of the histogram (LFC) range.
+    step : float
+        Histogram bin width.
+    T_zGE : pandas.DataFrame
+        Control table: [gRNA, gene, lfc_<rep>, ...] (per-replicate LFC columns).
+    hist : numpy.ndarray
+        Target histogram; 1-D counts, or 2-D (n_bins x n_reps) which is pooled
+        (summed across reps) internally.
+    baseline, cond : str
+        Condition labels.
+    control : str
+        Control category label (e.g. 'Zero-expressed gene'), used in labels.
+    output_dir : str
+        Directory where the target-vs-control p-curve plot is saved.
 
     Returns
     -------
-    crit_LR   : [left, right] critical LFC (from pooled control)
-    me_sd     : [mean, SD]    of pooled control LFC
-    med_mad   : [median, MAD] of pooled control LFC
-    binn      : bin edges
-    p_cont    : control p-curve
-    hiss_cont : control histogram
-    p_targ    : target p-curve
-    T_zGE_out : control table, unchanged: [gRNA, gene, lfc_<r1>, ...]
+    crit_LR : numpy.ndarray
+        [left, right] critical LFC thresholds, from the pooled control.
+    me_sd : numpy.ndarray
+        [mean, SD] of the pooled control LFC.
+    med_mad : numpy.ndarray
+        [median, MAD] of the pooled control LFC.
+    binn : numpy.ndarray
+        Histogram bin edges.
+    p_cont : numpy.ndarray
+        Control p-curve (per-bin probability).
+    hiss_cont : numpy.ndarray
+        Control histogram counts.
+    p_targ : numpy.ndarray
+        Target p-curve (per-bin probability).
+    T_zGE_out : pandas.DataFrame
+        The control table, returned unchanged: [gRNA, gene, lfc_<rep>, ...].
     """
 
     # 1. Pooled-control histogram & stats

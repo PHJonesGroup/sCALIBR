@@ -12,20 +12,29 @@ def q_val_frequentist_critical(alf: float,
 
     Parameters
     ----------
-    alf       : significance level (e.g. 0.05)
-    bin_edges : 1‑D array of left‑edge bin positions (same length as `his`)
-    his       : 1‑D array of counts per bin (same length as `bin_edges`)
+    alf : float
+        Significance level (e.g. 0.05).
+    bin_edges : numpy.ndarray
+        1-D array of left-edge bin positions (same length as ``his``).
+    his : numpy.ndarray
+        1-D array of counts per bin (same length as ``bin_edges``).
 
     Returns
     -------
-    p         : combined p‑curve (left then right), length == len(his)
-    cL, cR    : critical LFC values (left/right tails)
-    bin_pi    : (#bins, 6) matrix  [bin, p_right, p_left, his, cum_R, cum_L]
-    med_LFCp  : LFC value at which left & right p‑curves intersect (~mode)
-    his4p     : combined cumulative counts (left then right), len == len(his)
+    p : numpy.ndarray
+        Combined p-curve (left tail then right tail); length == len(his).
+    cL : float
+        Left-tail critical LFC value.
+    cR : float
+        Right-tail critical LFC value.
+    bin_pi : numpy.ndarray
+        (n_bins, 6) diagnostics matrix: [bin, p_right, p_left, his, cum_R, cum_L].
+    med_LFCp : float
+        LFC value where the left and right p-curves intersect.
+    his4p : numpy.ndarray
+        Combined cumulative counts (left then right); length == len(his).
     """
 
-    # ------------------------------------------------------------------
     thrLowR = -4.5        # hard‑coded right‑tail lower bound
     S = his.sum()         # total gRNA count
     N = len(his)
@@ -41,7 +50,7 @@ def q_val_frequentist_critical(alf: float,
     p_right = cum_fracR
     p_left  = cum_fracL
 
-    # --- critical right‑tail threshold --------------------------------
+    #critical right‑tail threshold 
     crit_right_ind = np.where(p_right <= alf)[0][0]          # first ≤ alf
     lfc_crit_right = bin_edges[crit_right_ind]
     cR             = lfc_crit_right
@@ -54,12 +63,12 @@ def q_val_frequentist_critical(alf: float,
         lfc_crit_right = bin_edges[crit_right_ind]
         cR = lfc_crit_right
 
-    # --- critical left‑tail threshold ---------------------------------
+    #critical left‑tail threshold
     crit_left_ind = np.where(p_left >= (alf + delta))[0][0]
     lfc_crit_left = bin_edges[crit_left_ind]
     cL            = lfc_crit_left
 
-    # --- intersection (mode‑like) where |p_R - p_L| is minimal --------
+    #intersection (mode‑like) where |p_R - p_L| is minimal
     ind_min = np.argmin(np.abs(p_right - p_left))
     med_LFCp = bin_edges[ind_min]
 
