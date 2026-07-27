@@ -63,7 +63,7 @@ To run on your own data:
 | `rep_pairs`       | Name of replicates (leave '' if no replicates present)    | `['60159','60160','60161','60162']`   |
 | `st`              | Start of x axis                                           | `-10`                                 |
 | `end`             | End of x axis                                             | `10`                                  |
-| `step`            | Bin sizes                                                 | `0.05`                                |
+| `step`            | Bin sizes for histograms                                  | `0.05`                                |
 | `thr_lfchz`       | LFC threshold for volcano plot                            | `1.7`                                 |
 
 ### Outputs

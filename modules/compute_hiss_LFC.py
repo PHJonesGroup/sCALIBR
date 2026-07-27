@@ -12,18 +12,34 @@ def compute_hiss_LFC(chr_lfc, st, en, step):
     
     Parameters
     ----------
-        chr_lfc (pd.DataFrame): [gRNA, gene, lfc_<r1>, lfc_<r2>, ...]
-                                (any number of LFC columns from col index 2 on)
-        st, en, step: histogram range and bin width
+    chr_lfc : pandas.DataFrame
+        [gRNA, gene, lfc]                 if no replicates, or
+        [gRNA, gene, lfc_<rep>, ...]      one LFC column per replicate.
+    st, en : float
+        Lower / upper bounds of the histogram (LFC) range.
+    step : float
+        Histogram bin width.
 
     Returns
     -------
-        binn : bin edges (shared across all columns)
-        hiss : (#bins, n_lfc) counts, one column per LFC column
-        perc : (#bins, n_lfc) percentages, one column per LFC column
-        LFC  : (#rows, n_lfc) the LFC values
-        labels : list of the LFC column names
-        st1, en1 : data-driven bounds across all LFC columns
+    binn : numpy.ndarray
+        Bin edges (left edges), shared across all LFC columns.
+    hiss : numpy.ndarray, shape (n_bins, n_lfc)
+        Counts per bin, one column per LFC column.
+    perc : numpy.ndarray, shape (n_bins, n_lfc)
+        Percentages per bin, one column per LFC column.
+    LFC : numpy.ndarray, shape (n_rows, n_lfc)
+        The raw LFC values used.
+    labels : list of str
+        The LFC column names, in the order of the hiss/perc columns.
+    st1, en1 : float
+        Data-driven LFC bounds (min-1, max+1 across all columns); reported only,
+        not used for the actual binning.
+    
+    Raises
+    ------
+    ValueError
+        If LFC columns are missing from ``chr_lfc``
     """
     # all LFC columns (everything after gRNA, gene)
     lfc_cols = list(chr_lfc.columns[2:])

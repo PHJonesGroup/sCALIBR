@@ -20,6 +20,11 @@ def norm_table_individ(norm_dat, baseline, cond1):
         [sgRNA_name, gene, <baseline replicate columns>].
     tab_norm_cond1 : pandas.DataFrame
         [sgRNA_name, gene, <cond1 replicate columns>].
+    
+    Raises
+    ------
+    ValueError
+        If a required count column (baseline/cond1) is missing from ``norm_dat``
     """
     def build_table(cond):
         # all data columns belonging to this condition, in original order

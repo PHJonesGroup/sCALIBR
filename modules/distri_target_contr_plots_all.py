@@ -12,8 +12,19 @@ def distri_target_contr_plots_all(binn, category_percs, highlight, title, output
     """
     Plot pooled LFC distributions for any number of categories.
 
-    category_percs : dict {category_name -> 1-D (or 2-D) perc array}
-    highlight      : category name to emphasise (e.g. the target)
+    Parameters
+    ----------
+    binn : numpy.ndarray
+        Histogram bin edges (shared across all categories)
+    category_percs : dict
+        Maps category_name -> percentage array (1-D, or 2-D collapsed to 1-D
+        by averaging across replicate columns).
+    highlight : str
+        category name to emphasise (e.g. the target)
+    title: str
+        Plot title and filename stem, e.g. '<treatment>_vs_<baseline>'.
+    output_dir : str
+        Directory where the plots are saved
     """
     # keep only categories that have data
     items = [(name, _as_pooled_1d(p)) for name, p in category_percs.items()]
