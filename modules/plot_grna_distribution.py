@@ -3,6 +3,18 @@ import os
 from collections import Counter
 
 def plot_grna_distribution(gg, output_dir):
+    """
+    Plot the distribution of gRNA counts per gene as a bar chart.
+    
+    Parameters
+    ----------
+    gg : list of int
+        Number of gRNAs for each gene (one entry per gene).
+    output_dir : str
+        Directory where the plot 'gene_distribution_gRNA.png' is saved.
+
+    """
+
     counts = Counter(gg)                       # {gRNA_count: number_of_genes}
     d = max(gg)
     x = list(range(1, d + 1))

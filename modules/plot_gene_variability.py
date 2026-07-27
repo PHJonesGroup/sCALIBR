@@ -4,13 +4,26 @@ import plotly.graph_objects as go
 import os
 
 def plot_gene_variability(T_norm, output_dir, baseline, cond1,
-                          target_type="GOI", rep_pairs=None):
+                          target_type="GOI"):
     """
     Interactive per-gene CPM boxplots: two boxes per gene (baseline vs cond1),
     coloured by condition. Points coloured by replicate name (consistent across
     both boxes). Genes sorted by overall median CPM.
 
-    T_norm : [sgRNA_name, gene, gene_type, <cond>_<rep> count columns...]
+    Parameters
+    ----------
+    T_norm : pandas.DataFrame
+        Normalised counts; ID columns first, then '<condition>_<rep>' count columns.
+    output_dir : str
+        Directory where the plot 'gene_variability_boxplots.html' is saved.
+    baseline : str
+        Baseline condition name / column prefix
+    cond1: str
+        Treatment condition name / column prefix
+    target_type : str, optional
+        Value in the 'gene_type' column selecting which genes to plot
+        (default 'GOI').
+
     """
     gt = T_norm["gene_type"].astype(str).str.strip()
     goi = T_norm[gt == target_type].copy()
@@ -118,4 +131,3 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
     )
     out = os.path.join(output_dir, "gene_variability_boxplots.html")
     fig.write_html(out)
-    return out

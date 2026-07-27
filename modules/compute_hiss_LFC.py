@@ -9,13 +9,15 @@ from .make_histo_LFC import make_histo_LFC
 def compute_hiss_LFC(chr_lfc, st, en, step):
     """
     Compute histograms for individual gRNAs across one or more LFC columns.
-
-    Parameters:
+    
+    Parameters
+    ----------
         chr_lfc (pd.DataFrame): [gRNA, gene, lfc_<r1>, lfc_<r2>, ...]
                                 (any number of LFC columns from col index 2 on)
         st, en, step: histogram range and bin width
 
-    Returns:
+    Returns
+    -------
         binn : bin edges (shared across all columns)
         hiss : (#bins, n_lfc) counts, one column per LFC column
         perc : (#bins, n_lfc) percentages, one column per LFC column

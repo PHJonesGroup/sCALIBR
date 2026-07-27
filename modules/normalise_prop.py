@@ -4,15 +4,20 @@ import os
 def normalise_prop(ssc, raw_ind, output_dir):
     """
     Normalise counts per column to CPM: (count_j / sum(counts)) * 1e6 + ssc offset.
-    Works for any number of data columns (any replicate/condition count).
 
-    Parameters:
-    - ssc: scalar offset added after scaling, to avoid zeros
-    - raw_ind: DataFrame with 2 ID columns (gRNA, gene) followed by count columns
-    - output_dir: where to save the QC plot
+    Parameters
+    ----------
+    ssc: int
+        Scalar offset added after scaling, to avoid zeros
+    raw_ind: pandas.DataFrame
+        DataFrame with 3 ID columns (gRNA, gene, gene_type) followed by count columns
+    output_dir : str
+        Directory where the plot 'gRNA_counts_normalisation.png' is saved.
 
-    Returns:
-    - norm_df: DataFrame [gRNA, gene, <normalised count columns under original names>]
+    Returns
+    -------
+    norm_df: pandas.DataFrame
+        DataFrame [gRNA, gene, <normalised count columns>]
     """
     # all data columns = everything after the 3 ID columns
     data_cols = list(raw_ind.columns[3:])

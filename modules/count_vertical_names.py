@@ -1,16 +1,20 @@
 def count_vertical_names(gene_names):
     """
-    Given a list of gene names (strings), this function groups consecutive identical names,
-    returning:
-    - ggenes: list of unique gene names for each consecutive group
-    - gg: list of counts of repeats per unique gene name group
-    - ind_gn: list of start indices (1-based) for each group in the original list
+    Given a list of gene names (strings), this function groups rows with identical names.
     
-    Example:
-    gene_names = ['Aars2', 'Aars2', 'Aars2', 'Aars2', 'Aasdhppt', 'Aasdhppt', 'Aasdhppt', 'Aasdhppt', ...]
-    ggenes = ['Aars2', 'Aasdhppt', ...]
-    gg = [4, 4, ...]  # counts
-    ind_gn = [1, 5, ...]  
+    Parameters
+    ----------
+    gene_names : list of str
+        Gene names found in column gene
+
+    Returns
+    -------
+    ggenes : list of str
+        List of unique gene names
+    gg : list of int
+        Number of times each gene identifier appears in dataframe
+    ind_gn : list of int
+        List of start indices (1-based) for each group in the original list
     """
     ggenes = []
     gg = []

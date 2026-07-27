@@ -3,6 +3,26 @@ import matplotlib.pyplot as plt
 import os
 
 def plot_me_med(tab_norm_T0, tab_norm_T1, output_dir):
+    """
+    Plot per-sample mean and median of normalised CPM counts as a bar chart.
+    
+    Parameters
+    ----------
+    tab_norm_baseline : pandas.DataFrame
+        [sgRNA_name, gene, <baseline replicate columns>].
+    tab_norm_cond1 : pandas.DataFrame
+        [sgRNA_name, gene, <cond1 replicate columns>].
+    output_dir : str
+        Directory where the plot 'normalised_counts_mean_med.png' is saved.
+
+    Returns
+    -------
+    me_med : numpy.ndarray, shape (2, n_samples)
+        Row 0 = per-sample means, row 1 = per-sample medians, concatenated
+        across both conditions (baseline columns then treatment columns).
+    labels : list of str
+        Column names corresponding to each entry in me_med, in the same order.
+    """
     # all replicate columns for each condition (whatever the count)
     T0 = tab_norm_T0.iloc[:, 3:].to_numpy()
     T1 = tab_norm_T1.iloc[:, 3:].to_numpy()
@@ -33,7 +53,6 @@ def plot_me_med(tab_norm_T0, tab_norm_T1, output_dir):
             plt.bar(i, medians[i], width=bar_width, color='tab:orange')  # back
             plt.bar(i, means[i],   width=bar_width, color='tab:blue')    # front
 
-    # legend proxies (loop bars aren't labelled individually)
     from matplotlib.patches import Patch
     legend_handles = [
         Patch(color='tab:blue',   label='Mean'),
