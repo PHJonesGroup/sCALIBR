@@ -4,19 +4,34 @@ from .make_histo_LFC import make_histo_LFC
 
 def computeZ(st, en, step, LFC_t, me_sd_z):
     """
-    Compute per-replicate Z-scores for targets, using the mean/SD from the
-    pooled control (zGE / intergenic).
+    Compute per-replicate Z-scores for targets against the pooled-control null.
+    
+    Parameters
+    ----------
+    st, en : float
+        Lower / upper bounds of the histogram (LFC) range.
+    step : float
+        Histogram bin width.
+    LFC_t : numpy.ndarray
+        Target LFCs, shape (n_gRNA, n_reps); a 1-D array is treated as one column.
+    me_sd_z : sequence of float
+        [mean, SD] of the pooled control LFC (used as the standardisation null).
 
-    Inputs:
-    - LFC_t: 2-D array (n_gRNA x n_reps) of target LFCs, one column per rep
-    - me_sd_z: [mean, SD] of the pooled control LFC
-    - st, en, step: histogram bin parameters
+    Returns
+    -------
+    Z_t : numpy.ndarray
+        Z-scored LFCs, shape (n_gRNA, n_reps), one column per replicate.
+    binn : numpy.ndarray
+        Histogram bin edges.
+    perc_t : numpy.ndarray
+        Pooled percentage histogram of the raw LFC values (all reps combined).
+    perc_zt : numpy.ndarray
+        Pooled percentage histogram of the Z-scored values (all reps combined).
 
-    Outputs:
-    - Z_t: 2-D array (n_gRNA x n_reps) of Z-scored LFCs, one column per rep
-    - binn: bin edges
-    - perc_t:  pooled % histogram of LFC  (all reps combined)
-    - perc_zt: pooled % histogram of Z    (all reps combined)
+    Raises
+    ------
+    ValueError
+        If the control SD is zero or non-finite (cannot standardise).
     """
     LFC_t = np.asarray(LFC_t, dtype=float)
     if LFC_t.ndim == 1:

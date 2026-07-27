@@ -8,13 +8,22 @@ def make_tables_Z(target, Z_t, control_type):
 
     Parameters
     ----------
-    target : pd.DataFrame with [gRNA, gene, lfc_<r1>, ..., Q_<r1>, ...]
-    Z_t    : 2-D ndarray (n_gRNA x n_reps), per-rep Z-scores aligned to the
-             lfc_* columns (same column order)
+    target : pd.DataFrame 
+        Table of target gRNA with [gRNA, gene, lfc_<r1>, ..., Q_<r1>, ...]
+    Z_t : numpy.ndarray
+        (n_gRNA x n_reps), per-rep Z-scores aligned to the lfc_* columns (same column order)
+    control_type : str
+        gene_type value to calibrate on
 
     Returns
     -------
-    T_wt : DataFrame [gRNA, gene, lfc_<r>, Z_,control_type>_<r>, Q_<r>, ...] per replicate
+    T_wt : pandas.DataFrame
+        Table [gRNA, gene, lfc_<r>, Z_,control_type>_<r>, Q_<r>, ...] per replicate
+    
+    Raises
+    ------
+    ValueError
+        If required lfc columns are missing from ``Z_t``
     """
     Z_t = np.asarray(Z_t, dtype=float)
     if Z_t.ndim == 1:
