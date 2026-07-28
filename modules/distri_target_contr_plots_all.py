@@ -25,6 +25,10 @@ def distri_target_contr_plots_all(binn, category_percs, highlight, title, output
         Plot title and filename stem, e.g. '<treatment>_vs_<baseline>'.
     output_dir : str
         Directory where the plots are saved
+    
+    Returns
+    -------
+    None
     """
     # keep only categories that have data
     items = [(name, _as_pooled_1d(p)) for name, p in category_percs.items()]

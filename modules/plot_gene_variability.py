@@ -23,7 +23,10 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
     target_type : str, optional
         Value in the 'gene_type' column selecting which genes to plot
         (default 'GOI').
-
+    
+    Returns
+    -------
+    None
     """
     gt = T_norm["gene_type"].astype(str).str.strip()
     goi = T_norm[gt == target_type].copy()

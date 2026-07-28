@@ -12,7 +12,10 @@ def plot_grna_distribution(gg, output_dir):
         Number of gRNAs for each gene (one entry per gene).
     output_dir : str
         Directory where the plot 'gene_distribution_gRNA.png' is saved.
-
+    
+    Returns
+    -------
+    None
     """
 
     counts = Counter(gg)                       # {gRNA_count: number_of_genes}
@@ -22,7 +25,7 @@ def plot_grna_distribution(gg, output_dir):
 
     plt.figure()
     plt.bar(x, heights, edgecolor='black')
-    plt.xticks(x)                              # one tick per gRNA count
+    plt.xticks(x)
     plt.xlabel('number of gRNA per gene')
     plt.ylabel('number of genes')
     plt.title('number of gRNA per gene distribution')
