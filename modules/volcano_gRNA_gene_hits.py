@@ -38,7 +38,7 @@ def volcano_grna_gene_hits(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lf
     Returns
     -------
     T_gRNA : pandas.DataFrame
-        Per-gRNA volcano table (from the per-gRNA Z panel).
+        Per-gRNA volcano table.
     T_lfc_z_q_med : pandas.DataFrame
         Per-gene median LFC / Z / q table.
     T_lfc_z_q_me : pandas.DataFrame
@@ -50,6 +50,7 @@ def volcano_grna_gene_hits(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lf
     indhaz, inddaz : array-like
         Indices of enriched / depleted hits, per-gene on the Z scale.
     """
+    grnas = T_vert['gRNA']
     genes  = T_vert['gene']
     # collapse reps to median per gRNA (or use the single column if no reps)
     scoreL = collapse_table(T_vert, prefix="lfc",                     exact="lfc")
@@ -63,19 +64,18 @@ def volcano_grna_gene_hits(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lf
     # --- Row 0, Col 0: per-gRNA LFC ---
     general_volcano(
         alf, sfdr_corr, thr_lfch, thr_lfcd,
-        scoreL, fdr, cond, genes, ax=axs[0, 0]
-    )
+        scoreL, fdr, cond, genes, ax=axs[0, 0], grna=grnas)
+    
     axs[0, 0].set_xlabel('LFC', fontsize=14)
     axs[0, 0].set_title('Volcano per gRNA', fontsize=16)
 
     # --- Row 0, Col 1: per-gRNA Z ---
     LPV, indha, indda, T_ds, T_hs, T_gRNA = general_volcano(
         alf, sfdr_corr, thr_lfchz, thr_lfcdz,
-        scoreZ, fdr, cond, genes, ax=axs[0, 1]
+        scoreZ, fdr, cond, genes, ax=axs[0, 1], grna=grnas
     )
     axs[0, 1].set_xlabel('Z-corrected LFC', fontsize=14)
     axs[0, 1].set_title('Volcano per gRNA', fontsize=16)
-
     # --- Per-gene stats ---
     (
         T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z,

@@ -41,6 +41,7 @@ def volcano_grna_gene_hits_interactive(
     -------
     None
     """
+    grnas = T_vert['gRNA']
     genes  = T_vert['gene']
     # collapse reps to median per gRNA (or use the single column if no reps)
     scoreL = collapse_table(T_vert, prefix="lfc",                     exact="lfc")
@@ -57,38 +58,38 @@ def volcano_grna_gene_hits_interactive(
     ))
 
     # helper to add the three trace layers (all / hits / depleted)
-    def add_volcano(T_all, T_hs, T_ds, row, col, show_legend):
+    def add_volcano(T_all, T_hs, T_ds, row, col, label, show_legend):
         fig.add_trace(go.Scatter(
             x=T_all["score"], y=T_all["LPV"], mode="markers",
             marker=dict(color="lightgray", size=6),
-            text=T_all["gene"], name="", hoverinfo="text+x+y", showlegend=False
+            text=T_all[label], name="", hoverinfo="text+x+y", showlegend=False
         ), row=row, col=col)
         if not T_hs.empty:
             fig.add_trace(go.Scatter(
                 x=T_hs["score"], y=T_hs["LPV"], mode="markers",
                 marker=dict(color="red", size=7),
-                text=T_hs["gene"], name="Hits", hoverinfo="text+x+y",
+                text=T_hs[label], name="Hits", hoverinfo="text+x+y",
                 showlegend=show_legend
             ), row=row, col=col)
         if not T_ds.empty:
             fig.add_trace(go.Scatter(
                 x=T_ds["score"], y=T_ds["LPV"], mode="markers",
                 marker=dict(color="blue", size=7),
-                text=T_ds["gene"], name="Depleted", hoverinfo="text+x+y",
+                text=T_ds[label], name="Depleted", hoverinfo="text+x+y",
                 showlegend=show_legend
             ), row=row, col=col)
 
     # --- Row 1, Col 1: per-gRNA LFC ---
     _, _, _, T_dsL, T_hsL, T_gRNA_L = general_volcano_interactive(
-        alf, sfdr_corr, thr_lfch, thr_lfcd, scoreL, fdr, cond, genes
+        alf, sfdr_corr, thr_lfch, thr_lfcd, scoreL, fdr, cond, genes, grnas
     )
-    add_volcano(T_gRNA_L, T_hsL, T_dsL, row=1, col=1, show_legend=True)  # legend from here only
+    add_volcano(T_gRNA_L, T_hsL, T_dsL, row=1, col=1, label="gRNA", show_legend=True)  # legend from here only
 
     # --- Row 1, Col 2: per-gRNA Z ---
     LPV, indha, indda, T_ds, T_hs, T_gRNA = general_volcano_interactive(
-        alf, sfdr_corr, thr_lfchz, thr_lfcdz, scoreZ, fdr, cond, genes
+        alf, sfdr_corr, thr_lfchz, thr_lfcdz, scoreZ, fdr, cond, genes, grnas
     )
-    add_volcano(T_gRNA, T_hs, T_ds, row=1, col=2, show_legend=False)
+    add_volcano(T_gRNA, T_hs, T_ds, row=1, col=2, label="gRNA", show_legend=False)
 
     # --- Per-gene stats ---
     (
@@ -107,14 +108,14 @@ def volcano_grna_gene_hits_interactive(
             alf, sfdr_corr, thr_lfch, thr_lfcd,
             T_lfc_z_q_med.iloc[:, 1].values, fdr_gene, cond, genes_gene
         )
-        add_volcano(T_gene2, T_hs2, T_ds2, row=2, col=1, show_legend=False)
+        add_volcano(T_gene2, T_hs2, T_ds2, row=2, col=1, label="gene", show_legend=False)
 
         # --- Row 2, Col 2: per-gene Z ---
         _, _, _, T_ds3, T_hs3, T_gene3 = general_volcano_interactive(
             alf, sfdr_corr, thr_lfchz, thr_lfcdz,
             T_lfc_z_q_med.iloc[:, 2].values, fdr_gene, cond, genes_gene
         )
-        add_volcano(T_gene3, T_hs3, T_ds3, row=2, col=2, show_legend=False)
+        add_volcano(T_gene3, T_hs3, T_ds3, row=2, col=2, label="gene", show_legend=False)
     else:
         print("No per-gene data available, skipping gene volcano plots")
 

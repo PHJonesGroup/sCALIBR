@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-def general_volcano_interactive(alf, sfdr_corr, thr_scoreh, thr_scored, score, fdr, cond, genes):
+def general_volcano_interactive(alf, sfdr_corr, thr_scoreh, thr_scored, score, fdr, cond, genes, grna=None):
     """
     Draw a single interactive volcano panel and identify enriched / depleted hits.
 
@@ -43,7 +43,21 @@ def general_volcano_interactive(alf, sfdr_corr, thr_scoreh, thr_scored, score, f
     fdr_corr = fdr + sfdr_corr  # avoid log10(0)
     LPV = -np.log10(fdr_corr)
 
-    T_gene = pd.DataFrame({'gene': genes, 'score': score, 'fdr_corr': fdr_corr, 'LPV': LPV})
+    if grna is not None:
+        T_gene = pd.DataFrame({
+            'gRNA': np.asarray(grna),
+            'gene': np.asarray(genes),        
+            'score': np.asarray(score),
+            'fdr_corr': np.asarray(fdr_corr),
+            'LPV': np.asarray(LPV),            
+        })
+    else:
+        T_gene = pd.DataFrame({
+            'gene': np.asarray(genes),
+            'score': np.asarray(score),
+            'fdr_corr': np.asarray(fdr_corr),
+            'LPV': np.asarray(LPV),           
+        })
 
     indh = [i for i, (f, s) in enumerate(zip(fdr, score)) if (f <= thr_fdr and s >= thr_scoreh)]
     indd = [i for i, (f, s) in enumerate(zip(fdr, score)) if (f <= thr_fdr and s <= thr_scored)]

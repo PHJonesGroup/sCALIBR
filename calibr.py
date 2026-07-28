@@ -171,4 +171,4 @@ thrLFC_d_h = [thr_lfcd, thr_lfch]
 volcano_grna_gene_hits_interactive.volcano_grna_gene_hits_interactive(
     alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, baseline, cond1, control_type, output_dir)
 
-num_hd_LFC_Z = [len(indha), len(indda), len(indhaz), len(inddaz)]
+T_gRNA.to_csv(os.path.join(output_dir, f'T_gRNA_output.csv'), index=False)
