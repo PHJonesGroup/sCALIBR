@@ -96,7 +96,7 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
                 ))
     # restore gene names on the x-axis (we used numeric positions)
     fig.update_layout(
-        title=f"Per-gene CPM variability (GOI): {baseline} vs {cond1}",
+        title=f"Per-gene gRNA variability (GOI): {baseline} vs {cond1}",
         xaxis_title="Gene", yaxis_title="Normalised counts (CPM)",
         xaxis=dict(tickmode="array",
                    tickvals=list(gene_to_x.values()),
