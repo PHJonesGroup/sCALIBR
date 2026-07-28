@@ -164,11 +164,11 @@ thr_lfch = crit_LR[1]     # right-tail critical LFC (enrichment)
 thr_lfcd = crit_LR[0]     # left-tail critical LFC (depletion)
 thrLFC_d_h = [thr_lfcd, thr_lfch]
 
-(T_gRNA, T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z,
- indha, indda, indhaz, inddaz) = volcano_grna_gene_hits.volcano_grna_gene_hits(
+T_gRNA, T_gene = volcano_grna_gene_hits.volcano_grna_gene_hits(
     alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, baseline, cond1, control_type, output_dir)
 
 volcano_grna_gene_hits_interactive.volcano_grna_gene_hits_interactive(
     alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, baseline, cond1, control_type, output_dir)
 
 T_gRNA.to_csv(os.path.join(output_dir, f'T_gRNA_output.csv'), index=False)
+T_gene.to_csv(os.path.join(output_dir, f'T_LFC_output.csv'), index=False)

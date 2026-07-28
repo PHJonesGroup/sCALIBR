@@ -30,16 +30,6 @@ def general_volcano(alf, sfdr_corr, thr_scoreh, thr_scored, score, fdr, cond, ge
     
     Returns
     -------
-    LPV : numpy.ndarray
-        -log10 of the pseudocount-adjusted FDR, per point.
-    indh : list of int
-        Indices of enriched hits (significant, score >= thr_scoreh).
-    indd : list of int
-        Indices of depleted hits (significant, score <= thr_scored).
-    T_ds : pandas.DataFrame
-        Table of depleted-hit rows [gene, score, fdr_corr] (empty if none).
-    T_hs : pandas.DataFrame
-        Table of enriched-hit rows [gene, score, fdr_corr] (empty if none).
     T_gene : pandas.DataFrame
         All points as [gene, score, fdr_corr].
     """
@@ -86,4 +76,4 @@ def general_volcano(alf, sfdr_corr, thr_scoreh, thr_scored, score, fdr, cond, ge
 
         ax.legend()
 
-    return LPV, indh, indd, T_ds, T_hs, T_gene
+    return T_gene

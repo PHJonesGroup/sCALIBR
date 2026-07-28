@@ -70,7 +70,7 @@ def volcano_grna_gene_hits(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lf
     axs[0, 0].set_title('Volcano per gRNA', fontsize=16)
 
     # --- Row 0, Col 1: per-gRNA Z ---
-    LPV, indha, indda, T_ds, T_hs, T_gRNA = general_volcano(
+    T_gRNA = general_volcano(
         alf, sfdr_corr, thr_lfchz, thr_lfcdz,
         scoreZ, fdr, cond, genes, ax=axs[0, 1], grna=grnas
     )
@@ -78,8 +78,7 @@ def volcano_grna_gene_hits(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lf
     axs[0, 1].set_title('Volcano per gRNA', fontsize=16)
     # --- Per-gene stats ---
     (
-        T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z,
-        indha_gene, indda_gene, indhaz, inddaz
+        T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z
     ) = pergene_hits_med_horiz(
         alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, cond, control_type
     )
@@ -89,7 +88,7 @@ def volcano_grna_gene_hits(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lf
         genes_gene = T_lfc_z_q_med.iloc[:, 0]
 
         # --- Row 1, Col 0: per-gene LFC ---
-        general_volcano(
+        T_gene = general_volcano(
             alf, sfdr_corr, thr_lfch, thr_lfcd,
             T_lfc_z_q_med.iloc[:, 1].values, fdr_gene.values, cond, genes_gene.values,
             ax=axs[1, 0]
@@ -129,4 +128,4 @@ def volcano_grna_gene_hits(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lf
                 dpi=300, bbox_inches="tight")
     plt.close()
 
-    return T_gRNA, T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z, indha, indda, indhaz, inddaz
+    return T_gRNA, T_gene
