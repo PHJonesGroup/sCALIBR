@@ -1,27 +1,39 @@
 import numpy as np
 import pandas as pd
+from .collapse_table import collapse_table
 
 def pergene_med_horiz(T_vert, control_type):
     """
     Per-gene median/mean of LFC, Z, Q, computed from a per-gRNA table that may
     have any number of gRNAs per gene and any number of replicate columns.
 
-    T_vert : [gRNA, gene, lfc(_<r>)..., Z_<control>_lfc(_<r>)..., Q(_<r>)...]
-    """
-    def collapse(prefix, exact):
-        if exact in T_vert.columns:
-            return T_vert[exact].astype(float)
-        cols = [c for c in T_vert.columns if c.startswith(prefix)]
-        if not cols:
-            raise KeyError(f"No columns for {exact or prefix}. Cols: {T_vert.columns.tolist()}")
-        return T_vert[cols].astype(float).median(axis=1)
+    Parameters
+    ----------
+    T_vert : pandas.DataFrame
+        Per-gRNA table: [gRNA, gene, lfc(_<rep>)..., Z_<control_type>_lfc(_<rep>)...,
+        Q(_<rep>)...].
+    control_type : str
+        Control category label (e.g. 'Zero-expressed gene'), used in labels.
 
+    Returns
+    -------
+    T_lfc_z_q_med : pandas.DataFrame
+        [genes, median_LFC, median_Z, median_q] — per-gene medians.
+    T_lfc_z_q_me : pandas.DataFrame
+        [genes, mean_LFC, mean_Z, mean_q] — per-gene means.
+    T_LFC : pandas.DataFrame
+        [genes, median_LFC, mean_LFC, std_LFC, n_gRNA] — LFC summary + gRNA count.
+    T_Q : pandas.DataFrame
+        [genes, median_q, mean_q, std_q] — q-value summary.
+    T_Z : pandas.DataFrame
+        [genes, median_Z, mean_Z, std_Z] — Z summary.
+    """
     # 1. collapse replicates -> one value per gRNA
     per_grna = pd.DataFrame({
         'gene': T_vert['gene'].values,
-        'LFC':  collapse('lfc', 'lfc').values,
-        'Z':    collapse(f'Z_{control_type}_lfc', f'Z_{control_type}_lfc').values,
-        'Q':    collapse('Q', 'Q').values,
+        'LFC':  collapse_table(T_vert, 'lfc', 'lfc').values,
+        'Z':    collapse_table(T_vert, f'Z_{control_type}_lfc', f'Z_{control_type}_lfc').values,
+        'Q':    collapse_table(T_vert, 'Q', 'Q').values,
     })
 
     # 2. aggregate gRNAs -> one row per gene (median + mean + std), ANY gRNA count

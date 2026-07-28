@@ -8,6 +8,48 @@ from .collapse_table import collapse_table
 
 def volcano_grna_gene_hits(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz,
                               T_vert, baseline, cond, control_type, output_dir):
+    """
+    Draw a 2x2 grid of volcano plots and return hit/depleted indices.
+
+    Panels: per-gRNA LFC, per-gRNA Z (top row); per-gene LFC, per-gene Z (bottom
+    row).
+
+    Parameters
+    ----------
+    alf : float
+        Significance level for hit calling.
+    sfdr_corr : float
+        Pseudocount added to FDR before -log10 (avoids log10(0) on the y-axis).
+    thr_lfch, thr_lfcd : float
+        Right / left critical LFC thresholds (enrichment / depletion), raw LFC scale.
+    thr_lfchz, thr_lfcdz : float
+        Right / left critical thresholds on the Z-corrected scale.
+    T_vert : pandas.DataFrame
+        Per-gRNA table: [gRNA, gene, lfc(_<rep>)..., Z_<control_type>_lfc(_<rep>)...,
+        Q(_<rep>)...].
+    baseline, cond : str
+        Condition labels, used in titles and the output filename.
+    control_type : str
+        Control category used for the Z columns (e.g. 'Zero-expressed gene'),
+        needed to locate the 'Z_<control_type>_lfc' columns.
+    output_dir : str
+        Directory where the figure is saved.
+
+    Returns
+    -------
+    T_gRNA : pandas.DataFrame
+        Per-gRNA volcano table (from the per-gRNA Z panel).
+    T_lfc_z_q_med : pandas.DataFrame
+        Per-gene median LFC / Z / q table.
+    T_lfc_z_q_me : pandas.DataFrame
+        Per-gene mean LFC / Z / q table.
+    T_LFC, T_Q, T_Z : pandas.DataFrame
+        Per-gene LFC, Q, and Z summary tables.
+    indha, indda : array-like
+        Indices of enriched / depleted hits, per-gRNA on the Z scale.
+    indhaz, inddaz : array-like
+        Indices of enriched / depleted hits, per-gene on the Z scale.
+    """
     genes  = T_vert['gene']
     # collapse reps to median per gRNA (or use the single column if no reps)
     scoreL = collapse_table(T_vert, prefix="lfc",                     exact="lfc")
@@ -21,7 +63,7 @@ def volcano_grna_gene_hits(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lf
     # --- Row 0, Col 0: per-gRNA LFC ---
     general_volcano(
         alf, sfdr_corr, thr_lfch, thr_lfcd,
-        scoreL, fdr, cond, genes, plot=True, ax=axs[0, 0]
+        scoreL, fdr, cond, genes, ax=axs[0, 0]
     )
     axs[0, 0].set_xlabel('LFC', fontsize=14)
     axs[0, 0].set_title('Volcano per gRNA', fontsize=16)
@@ -29,7 +71,7 @@ def volcano_grna_gene_hits(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lf
     # --- Row 0, Col 1: per-gRNA Z ---
     LPV, indha, indda, T_ds, T_hs, T_gRNA = general_volcano(
         alf, sfdr_corr, thr_lfchz, thr_lfcdz,
-        scoreZ, fdr, cond, genes, plot=True, ax=axs[0, 1]
+        scoreZ, fdr, cond, genes, ax=axs[0, 1]
     )
     axs[0, 1].set_xlabel('Z-corrected LFC', fontsize=14)
     axs[0, 1].set_title('Volcano per gRNA', fontsize=16)
@@ -39,7 +81,7 @@ def volcano_grna_gene_hits(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lf
         T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z,
         indha_gene, indda_gene, indhaz, inddaz
     ) = pergene_hits_med_horiz(
-        alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, cond, control_type, plot=False
+        alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, cond, control_type
     )
 
     if not T_lfc_z_q_med.empty:
@@ -50,7 +92,7 @@ def volcano_grna_gene_hits(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lf
         general_volcano(
             alf, sfdr_corr, thr_lfch, thr_lfcd,
             T_lfc_z_q_med.iloc[:, 1].values, fdr_gene.values, cond, genes_gene.values,
-            plot=True, ax=axs[1, 0]
+            ax=axs[1, 0]
         )
         axs[1, 0].set_xlabel('LFC', fontsize=14)
         axs[1, 0].set_title('Volcano per gene', fontsize=16)
@@ -59,7 +101,7 @@ def volcano_grna_gene_hits(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lf
         general_volcano(
             alf, sfdr_corr, thr_lfchz, thr_lfcdz,
             T_lfc_z_q_med.iloc[:, 2].values, fdr_gene.values, cond, genes_gene.values,
-            plot=True, ax=axs[1, 1]
+            ax=axs[1, 1]
         )
         axs[1, 1].set_xlabel('Z-corrected LFC', fontsize=14)
         axs[1, 1].set_title('Volcano per gene', fontsize=16)

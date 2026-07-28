@@ -5,28 +5,47 @@ import pandas as pd
 from plotly.subplots import make_subplots
 from .general_volcano_interactive import general_volcano_interactive
 from .pergene_hits_med_horiz import pergene_hits_med_horiz
-
-def _collapse(T_vert, prefix, exact=None):
-    """
-    Return a single per-gRNA series for a quantity that may be split across reps.
-    - exact: if that exact column exists (no-rep case), use it directly.
-    - otherwise: median across all columns starting with `prefix` (rep case).
-    """
-    if exact is not None and exact in T_vert.columns:
-        return T_vert[exact].astype(float)
-    cols = [c for c in T_vert.columns if c.startswith(prefix)]
-    if not cols:
-        raise KeyError(f"No columns for '{exact or prefix}'. Columns: {T_vert.columns.tolist()}")
-    return T_vert[cols].astype(float).median(axis=1)
+from .collapse_table import collapse_table
 
 def volcano_grna_gene_hits_interactive(
     alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, baseline, cond, control_type, output_dir
 ):
+    """
+    Draw an interactive 2x2 grid of volcano plots and return hit/depleted indices.
+
+    Panels: per-gRNA LFC, per-gRNA Z (top row); per-gene LFC, per-gene Z (bottom
+    row).
+
+    Parameters
+    ----------
+    alf : float
+        Significance level for hit calling.
+    sfdr_corr : float
+        Pseudocount added to FDR before -log10 (avoids log10(0) on the y-axis).
+    thr_lfch, thr_lfcd : float
+        Right / left critical LFC thresholds (enrichment / depletion), raw LFC scale.
+    thr_lfchz, thr_lfcdz : float
+        Right / left critical thresholds on the Z-corrected scale.
+    T_vert : pandas.DataFrame
+        Per-gRNA table: [gRNA, gene, lfc(_<rep>)..., Z_<control_type>_lfc(_<rep>)...,
+        Q(_<rep>)...].
+    baseline, cond : str
+        Condition labels, used in titles and the output filename.
+    control_type : str
+        Control category used for the Z columns (e.g. 'Zero-expressed gene'),
+        needed to locate the 'Z_<control_type>_lfc' columns.
+    output_dir : str
+        Directory where the figure is saved.
+
+    Returns
+    -------
+    None
+    """
     genes  = T_vert['gene']
     # collapse reps to median per gRNA (or use the single column if no reps)
-    scoreL = _collapse(T_vert, prefix="lfc",                     exact="lfc")
-    scoreZ = _collapse(T_vert, prefix=f"Z_{control_type}_lfc",   exact=f"Z_{control_type}_lfc")
-    fdr    = _collapse(T_vert, prefix="Q",                       exact="Q")
+    scoreL = collapse_table(T_vert, prefix="lfc",                     exact="lfc")
+    scoreZ = collapse_table(T_vert, prefix=f"Z_{control_type}_lfc",   exact=f"Z_{control_type}_lfc")
+    fdr    = collapse_table(T_vert, prefix="Q",                       exact="Q")
 
 
     # 2x2 grid: row1 = per gRNA (LFC, Z), row2 = per gene (LFC, Z)
@@ -37,7 +56,7 @@ def volcano_grna_gene_hits_interactive(
         f"Volcano per gene",
     ))
 
-    # helper to add the three trace layers (all / hits / depleted) to a cell
+    # helper to add the three trace layers (all / hits / depleted)
     def add_volcano(T_all, T_hs, T_ds, row, col, show_legend):
         fig.add_trace(go.Scatter(
             x=T_all["score"], y=T_all["LPV"], mode="markers",
@@ -76,7 +95,7 @@ def volcano_grna_gene_hits_interactive(
         T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z,
         indha_gene, indda_gene, indhaz, inddaz
     ) = pergene_hits_med_horiz(
-        alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, cond, control_type, plot=False
+        alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, cond, control_type
     )
 
     if not T_lfc_z_q_med.empty:
