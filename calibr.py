@@ -171,4 +171,4 @@ volcano_grna_gene_hits_interactive.volcano_grna_gene_hits_interactive(
     alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, baseline, cond1, control_type, output_dir)
 
 T_gRNA.to_csv(os.path.join(output_dir, f'T_gRNA_output.csv'), index=False)
-T_gene.to_csv(os.path.join(output_dir, f'T_LFC_output.csv'), index=False)
+T_gene.to_csv(os.path.join(output_dir, f'T_gene_output.csv'), index=False)
