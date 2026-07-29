@@ -94,16 +94,12 @@ plot_gene_variability.plot_gene_variability(norm_dat, output_dir, baseline, cond
 # Format normalised counts, compute mean and median of normalised counts
 tab_norm_T0, tab_norm_T1 = norm_table_individ.norm_table_individ(norm_dat, baseline, cond1)
 
-me_med_T0_T1 = plot_me_med.plot_me_med(tab_norm_T0, tab_norm_T1, output_dir)
+plot_me_med.plot_me_med(tab_norm_T0, tab_norm_T1, output_dir)
 
 T_norm = pd.concat([tab_norm_T0, tab_norm_T1.iloc[:, 3:(3 + 2*rep)]], axis=1)
 T_norm.to_csv(os.path.join(output_dir, 'normalised_counts.csv'), index=False)
 
-norm_tab = T_norm.copy()
-column_labels = norm_tab.columns.tolist()
-
 # ============================ MODULE 2 ============================
-T_norm_indiv = T_norm.copy()
 
 # -------------------- 2.1 --------------------
 # Separate and show controls, NTs, zGE, and normalised counts
@@ -114,7 +110,7 @@ T_norm_indiv = T_norm.copy()
 # (4) Normalised targeted genes
 
 T_target, T_control, hist, groups, bin = separate_target_control.separate_target_control(
-    st, en, step, T_norm_indiv,
+    st, en, step, T_norm,
     target_type, control_type,
     baseline, cond1, rep_pairs, output_dir
 )
