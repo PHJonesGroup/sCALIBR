@@ -1,49 +1,72 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import os
+import pandas as pd
 
-def plot_histograms(binn, perc_t1, perc_zt1, baseline, cond1, gene_type, st, en, output_dir):
+def plot_histograms(bin_edges, perc_lfc, perc_z=None, perc_mz=None,
+                       title='', color='b', xlab='LFC', save_name ='', output_dir=''):
     """
-    Plot LFC and Z-corrected LFC distributions as two stacked histogram panels.
-
-    Top panel: raw LFC distribution. Bottom panel: control-calibrated (Z-corrected) LFC distribution.
-
+    Plot up to three stacked histogram panels: raw LFC, Z-LFC, and MZ-LFC.
+    
     Parameters
     ----------
-    binn : numpy.ndarray
-        Histogram bin edges (x positions for the bars).
-    perc_t1 : numpy.ndarray
+    bin_edges : numpy.ndarray
+        Bin left-edges (x positions for the bars); must have length >= 2.
+    perc_lfc : numpy.ndarray
         Percentage histogram of the raw LFC values (top panel).
-    perc_zt1 : numpy.ndarray
-        Percentage histogram of the Z-corrected LFC values (bottom panel).
-    baseline, cond1 : str
-        Condition labels, used in the title and filename.
-    gene_type : str
-        Gene category being plotted (e.g. 'GOI'), for labelling.
-    st, en : float
-        Lower / upper x-axis (LFC) bounds.
-    output_dir : str
+    perc_z : numpy.ndarray, optional
+        Percentage histogram of the Z-scored values (middle panel); skipped if None.
+    perc_mz : numpy.ndarray, optional
+        Percentage histogram of the MZ-scored values (bottom panel); skipped if None.
+    title : str, optional
+        Figure-level title (suptitle).
+    color : str, optional
+        Bar colour (default 'b').
+    xlab : str, optional
+        X-axis label for the top (raw LFC) panel (default 'LFC').
+    save_name : str, optional
+        Filename for the saved figure (within output_dir).
+    output_dir : str, optional
         Directory where the figure is saved.
 
     Returns
     -------
     None
     """
-    plt.figure(figsize=(10, 6))
-
-    plt.subplot(2, 1, 1)
-    plt.bar(binn, perc_t1, color='k')
+    if perc_mz is not None:
+        lfc_table = pd.DataFrame({
+        "bin" : np.round(bin_edges, 1),
+        "LFC": np.round(perc_lfc,1),
+        "Z_LFC": np.round(perc_z,1),
+        "Median_Z_LFC": np.round(perc_mz,1),})
+    else:
+        lfc_table = pd.DataFrame({
+        "bin" : np.round(bin_edges, 1),
+        "LFC": np.round(perc_lfc,1),
+        "Z_LFC": np.round(perc_z,1)})
+                
+    lfc_table.to_csv(
+        os.path.join(output_dir, f"{save_name}_data.csv"), index=False)
+    
+    plt.figure()
+    plt.suptitle(title, fontsize=14)
+    plt.subplot(3, 1, 1)
+    plt.bar(bin_edges, perc_lfc, width=np.diff(bin_edges)[0], color=color)
     plt.grid(True)
-    plt.xlim([st, en])
-    plt.xlabel('LFC')
+    plt.xlabel(xlab)
 
-    plt.subplot(2, 1, 2)
-    plt.bar(binn, perc_zt1, color='g')
-    plt.grid(True)
-    plt.xlim([st, en])
-    plt.xlabel('Z-corrected LFC')
+    if perc_z is not None:
+        plt.subplot(3, 1, 2)
+        plt.bar(bin_edges, perc_z, width=np.diff(bin_edges)[0], color=color)
+        plt.grid(True)
+        plt.xlabel('Z LFC')
 
+    if perc_mz is not None:
+        plt.subplot(3, 1, 3)
+        plt.bar(bin_edges, perc_mz, width=np.diff(bin_edges)[0], color=color)
+        plt.grid(True)
+        plt.xlabel('MZ LFC')
 
-    plt.suptitle(f'gRNA distribution: {cond1} vs {baseline}', fontsize=14)
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    plt.savefig(os.path.join(output_dir, f"target_distri_LFC_Z_corrected_{cond1}_vs_{baseline}"), dpi=300, bbox_inches="tight")
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, save_name), dpi=300, bbox_inches="tight")
     plt.close()

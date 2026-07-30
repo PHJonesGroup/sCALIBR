@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import pandas as pd
 
 def _as_pooled_1d(perc):
     if perc is None:
@@ -35,8 +36,14 @@ def distri_target_contr_plots_all(binn, category_percs, highlight, title, output
     items = [(n, p) for n, p in items if p is not None]
     if not items:
         return 1
-
+    
     width = np.diff(binn)[0]
+    data = {"bin": np.round(binn,2)}
+    for name, perc in items:
+        data[name] = np.round(perc,2)
+    pd.DataFrame(data).to_csv(
+        os.path.join(output_dir, f"distri_gene_types_{title}_data.csv"), index=False
+    )
     cmap = plt.get_cmap('tab10')                       # distinct colours for N categories
     colors = {name: cmap(i % 10) for i, (name, _) in enumerate(items)}
 

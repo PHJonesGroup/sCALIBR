@@ -35,16 +35,4 @@ def compute_p_critLFC(alf, binn, hiss, baseline, cond, control, output_dir):
 
     bin_p = np.column_stack((binn, p))
 
-    # Plot the single p-curve
-    plt.figure(figsize=(8, 6))
-    plt.plot(binn, p, 'b', label=f'{cond} vs {baseline}')
-    plt.grid(True)
-    plt.xlabel('LFC')
-    plt.ylabel('Probability')
-    plt.title('Zero Gene Expression gRNAs', fontsize=14)
-    plt.legend()
-    plt.savefig(os.path.join(output_dir, f"p_controls_{control}_{cond}_vs_{baseline}.png"),
-                dpi=300, bbox_inches="tight")
-    plt.close()
-
     return bin_p, crit_LR

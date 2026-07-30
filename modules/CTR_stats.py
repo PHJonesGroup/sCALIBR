@@ -66,6 +66,13 @@ def CTR_stats(alf, st, en, step, T_zGE, hist, baseline, cond, control, output_di
         hist = hist.sum(axis=1)          # pooled counts across reps -> 1-D
     p_targ, cL, cR, bin_pi, med_LFCp, his4p = q_val_frequentist_critical(alf, binn, hist)
 
+    p_table = pd.DataFrame({
+        "bin" : np.round(binn,1),
+        f"control_{control}": np.round(p_cont,1),
+        f"target": np.round(p_targ,1)})
+    p_table.to_csv(
+        os.path.join(output_dir, f"p_distri_targ_cont_{cond}_vs_{baseline}_data.csv"), index=False)
+
     # 5. Plot: target vs. control p-curves
     plt.figure()
     plt.plot(binn, p_cont, color="0.5", linestyle="--", label=f"control ({control})")

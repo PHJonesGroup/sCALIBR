@@ -148,7 +148,11 @@ T_vert_q = p_control_target_implement.p_control_target_implement(T_target, T_con
 lfc_cols = [c for c in T_vert_q.columns if c.startswith('lfc')]
 LFC_t = T_vert_q[lfc_cols].to_numpy(dtype=float)     # (n_gRNA x 4)
 Z_t, bin, perc_t, perc_zt = computeZ.computeZ(st, en, step, LFC_t, me_sd)
-plot_histograms.plot_histograms(bin, perc_t, perc_zt, baseline, cond1, "Target genes", st, en, output_dir)
+plot_histograms.plot_histograms(
+    bin_edges=bin, perc_lfc=perc_t, perc_z=perc_zt, 
+    title=f'Distribution of {target_type} gRNAs: {cond1} vs {baseline}',
+    save_name=f'distri_LFC_{target_type}_{cond1}_vs_{baseline}', 
+    output_dir=output_dir)
 
 T_t = make_tables_Z.make_tables_Z(T_vert_q, Z_t, control_type)
 
@@ -166,5 +170,5 @@ T_gRNA, T_gene = volcano_grna_gene_hits.volcano_grna_gene_hits(
 volcano_grna_gene_hits_interactive.volcano_grna_gene_hits_interactive(
     alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, baseline, cond1, control_type, output_dir)
 
-T_gRNA.to_csv(os.path.join(output_dir, f'T_gRNA_output.csv'), index=False)
-T_gene.to_csv(os.path.join(output_dir, f'T_gene_output.csv'), index=False)
+T_gRNA.to_csv(os.path.join(output_dir, f"volcano_gRNA_{cond1}_vs_{baseline}_grna.csv"), index=False)
+T_gene.to_csv(os.path.join(output_dir, f"volcano_gRNA_{cond1}_vs_{baseline}_gene.csv"), index=False)

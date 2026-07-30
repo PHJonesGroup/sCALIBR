@@ -3,7 +3,7 @@ import numpy as np
 from .make_histo_LFC import make_histo_LFC
 from .compute_p_critLFC import compute_p_critLFC
 from .med_mad_MZNP import med_mad_MZNP
-from .plot_three_panels import plot_three_panels
+from .plot_histograms import plot_histograms
 
 def make_histo_crit_stats(alf, st, en, step, T_zGE, baseline, cond1, control, output_dir):
     """
@@ -71,10 +71,10 @@ def make_histo_crit_stats(alf, st, en, step, T_zGE, baseline, cond1, control, ou
     # 5. Diagnostic plot
     _, _, perc_z  = make_histo_LFC(step, Z,  st, en)
     _, _, perc_mz = make_histo_LFC(step, MZ, st, en)
-    plot_three_panels(
+    plot_histograms(
         bin_, perc, perc_z, perc_mz,
-        title=f'Distribution of {control} genes: {cond1} vs {baseline}',
+        title=f'Distribution of {control} gRNAs: {cond1} vs {baseline}',
         color='b', xlab='LFC',
-        save_name=f'distri_{control}_{cond1}_vs_{baseline}', output_dir=output_dir)
+        save_name=f'distri_LFC_{control}_{cond1}_vs_{baseline}', output_dir=output_dir)
 
     return bin_, his, perc, crit_LR, bin_p, med_mad, me_sd, mod, MZ, Z, len(LFC)
