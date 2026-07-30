@@ -1,4 +1,4 @@
-# CALIBR
+# CRISPR Analysis via Locally calIBrated Reference (CALIBR)
 
 This pipeline is designed to find significant gRNA enrichment/depletion accounting for both FDR and FNR rates. This is achieved by calculating the likelihood of the observed gRNA fold change for each gene differing from the distribution of the set of true neutral control gRNAs in the screen.
 
