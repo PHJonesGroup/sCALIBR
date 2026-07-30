@@ -45,16 +45,11 @@ def CTR_stats(alf, st, en, step, T_zGE, hist, baseline, cond, control, output_di
         Control histogram counts.
     p_targ : numpy.ndarray
         Target p-curve (per-bin probability).
-    T_zGE_out : pandas.DataFrame
-        The control table, returned unchanged: [gRNA, gene, lfc_<rep>, ...].
     """
 
     # 1. Pooled-control histogram & stats
     (binn, hiss_z, perc, crit_LR, bin_pz, med_mad, me_sd, mod, MZ, Z, n_z
     ) = make_histo_crit_stats(alf, st, en, step, T_zGE, baseline, cond, control, output_dir)
-
-    # 2. Control table passed through unchanged (gRNA, gene, per-rep LFCs)
-    T_zGE_out = T_zGE.copy()
 
     # 3. Control p-curve & histogram
     p_cont    = bin_pz[:, 1]
@@ -86,4 +81,4 @@ def CTR_stats(alf, st, en, step, T_zGE, hist, baseline, cond, control, output_di
                 dpi=300, bbox_inches="tight")
     plt.close()
 
-    return crit_LR, me_sd, med_mad, binn, p_cont, hiss_cont, p_targ, T_zGE_out
+    return crit_LR, me_sd, med_mad, binn, p_cont, hiss_cont, p_targ

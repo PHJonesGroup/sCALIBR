@@ -124,8 +124,7 @@ T_target, T_control, hist, groups, bin = separate_target_control.separate_target
     binn, 
     p_cont, 
     hiss_cont, 
-    p_targ, 
-    T_control
+    p_targ
 ) = CTR_stats.CTR_stats(
     alf,
     st,
