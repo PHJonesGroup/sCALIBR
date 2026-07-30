@@ -42,7 +42,7 @@ def compute_hiss_LFC(chr_lfc, st, en, step):
         If LFC columns are missing from ``chr_lfc``
     """
     # all LFC columns (everything after gRNA, gene)
-    lfc_cols = list(chr_lfc.columns[2:])
+    lfc_cols = list(chr_lfc.columns[3:])
     if not lfc_cols:
         raise ValueError("No LFC columns found (expected columns after gRNA, gene)")
 

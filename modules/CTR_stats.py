@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from .make_histo_crit_stats import make_histo_crit_stats
 from .q_val_frequentist_critical import q_val_frequentist_critical
 
-def CTR_stats(alf, st, en, step, T_zGE, hist, baseline, cond, control, output_dir):
+def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, control, output_dir):
     """
     Calibrate a control null and score targets against it.
 
@@ -17,7 +17,7 @@ def CTR_stats(alf, st, en, step, T_zGE, hist, baseline, cond, control, output_di
         Lower / upper bounds of the histogram (LFC) range.
     step : float
         Histogram bin width.
-    T_zGE : pandas.DataFrame
+    T_control : pandas.DataFrame
         Control table: [gRNA, gene, lfc_<rep>, ...] (per-replicate LFC columns).
     hist : numpy.ndarray
         Target histogram; 1-D counts, or 2-D (n_bins x n_reps) which is pooled
@@ -49,7 +49,7 @@ def CTR_stats(alf, st, en, step, T_zGE, hist, baseline, cond, control, output_di
 
     # 1. Pooled-control histogram & stats
     (binn, hiss_z, perc, crit_LR, bin_pz, med_mad, me_sd, mod, MZ, Z, n_z
-    ) = make_histo_crit_stats(alf, st, en, step, T_zGE, baseline, cond, control, output_dir)
+    ) = make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond, control, output_dir)
 
     # 3. Control p-curve & histogram
     p_cont    = bin_pz[:, 1]

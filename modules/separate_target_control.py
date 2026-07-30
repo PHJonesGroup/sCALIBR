@@ -66,6 +66,7 @@ def separate_target_control(st, en, step, T_norm_indiv,
     # one per-rep LFC table + pooled histogram per discovered category
     groups = {}
     binn = None
+
     for cat in categories:
         rows = T_norm_indiv[gt == cat]
         tab = lfc_table(rows, baseline, cond1, rep_pairs)

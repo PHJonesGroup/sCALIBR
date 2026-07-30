@@ -5,7 +5,7 @@ from .compute_p_critLFC import compute_p_critLFC
 from .med_mad_MZNP import med_mad_MZNP
 from .plot_histograms import plot_histograms
 
-def make_histo_crit_stats(alf, st, en, step, T_zGE, baseline, cond1, control, output_dir):
+def make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond1, control, output_dir):
     """
     Histograms, critical LFC thresholds, and stats for control genes
     (baseline vs cond1), pooling all replicate LFC columns.
@@ -18,7 +18,7 @@ def make_histo_crit_stats(alf, st, en, step, T_zGE, baseline, cond1, control, ou
         Lower / upper bounds of the histogram (LFC) range.
     step : float
         Histogram bin width.
-    T_zGE : pandas.DataFrame
+    T_control : pandas.DataFrame
         Control table: [gRNA, gene, lfc_<rep>, ...] (per-replicate LFC columns).
     baseline, cond1 : str
         Condition labels.
@@ -53,10 +53,10 @@ def make_histo_crit_stats(alf, st, en, step, T_zGE, baseline, cond1, control, ou
         Number of finite pooled LFC values used.
     """
     # 1. Pool all replicate LFC columns
-    lfc_cols = list(T_zGE.columns[3:])
+    lfc_cols = list(T_control.columns[3:])
     if not lfc_cols:
         raise ValueError("No LFC columns found after gRNA, gene")
-    LFC = T_zGE[lfc_cols].astype(float).values.ravel()   # flatten reps into one vector
+    LFC = T_control[lfc_cols].astype(float).values.ravel()   # flatten reps into one vector
     LFC = LFC[np.isfinite(LFC)]                           # drop NaN/inf
 
     # 2. Histogram of the pooled control LFCs

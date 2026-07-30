@@ -32,6 +32,7 @@ def lfc_table(tab, baseline, cond1, rep_pairs):
     out = pd.DataFrame({
         'gRNA': tab.iloc[:, 0].values,
         'gene': tab.iloc[:, 1].astype(str).values,
+        'gene_type' : tab.iloc[:, 2].astype(str).values,
     })
 
     if not rep_pairs:                      # None or empty -> no replicate suffixes
