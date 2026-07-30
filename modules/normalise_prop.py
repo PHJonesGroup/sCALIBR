@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import pandas as pd
 import os
 
 def normalise_prop(ssc, raw_ind, output_dir):
@@ -31,6 +32,13 @@ def normalise_prop(ssc, raw_ind, output_dir):
     norm_dat = ssc + 1_000_000 * datc / sc          # CPM + offset
     sn  = norm_dat.sum(axis=0)                       # normalised column sums
 
+    count_table = pd.DataFrame({
+        "sample_name": data_cols,
+        "sum_raw_counts": sn1,
+        "sum_normalised_counts": sn})
+    count_table.to_csv(
+        os.path.join(output_dir, "gRNA_counts_normalisation_data.csv"), index=False)
+
     # QC plot: raw vs normalised column totals
     plt.figure(figsize=(max(8, 0.6 * len(data_cols)), 6))
 
@@ -53,4 +61,5 @@ def normalise_prop(ssc, raw_ind, output_dir):
 
     norm_df = raw_ind.iloc[:, :3].copy()
     norm_df[data_cols] = norm_dat
+
     return norm_df

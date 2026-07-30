@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+from matplotlib.patches import Patch
 import os
 
 def plot_me_med(tab_norm_T0, tab_norm_T1, output_dir):
@@ -37,6 +39,13 @@ def plot_me_med(tab_norm_T0, tab_norm_T1, output_dir):
 
     # column labels straight from the tables, so they match the data
     labels = list(tab_norm_T0.columns[3:]) + list(tab_norm_T1.columns[3:])
+    
+    mean_med_table = pd.DataFrame({
+        "sample_name" : labels,
+        "mean": np.round(means,0),
+        "median": np.round(medians,0)})
+    mean_med_table.to_csv(
+        os.path.join(output_dir, "normalised_counts_mean_med_data.csv"), index=False)
 
     # ---------- visualization (mean + median , tallest at back) ----------
     plt.figure(figsize=(max(8, 0.6 * len(labels)), 5))
@@ -53,7 +62,6 @@ def plot_me_med(tab_norm_T0, tab_norm_T1, output_dir):
             plt.bar(i, medians[i], width=bar_width, color='tab:orange')  # back
             plt.bar(i, means[i],   width=bar_width, color='tab:blue')    # front
 
-    from matplotlib.patches import Patch
     legend_handles = [
         Patch(color='tab:blue',   label='Mean'),
         Patch(color='tab:orange', label='Median'),
