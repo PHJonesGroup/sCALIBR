@@ -144,7 +144,8 @@ T_vert_q = p_control_target_implement.p_control_target_implement(T_target, T_con
 # -------------------- 2.4 --------------------
 # Compute Z LFC for targets only
 lfc_cols = [c for c in T_vert_q.columns if c.startswith('lfc')]
-LFC_t = T_vert_q[lfc_cols].to_numpy(dtype=float)     # (n_gRNA x 4)
+LFC_t = T_vert_q[lfc_cols].to_numpy(dtype=float)
+
 Z_t, bin, perc_t, perc_zt = computeZ.computeZ(st, en, step, LFC_t, me_sd)
 plot_histograms.plot_histograms(
     bin_edges=bin, perc_lfc=perc_t, perc_z=perc_zt, 

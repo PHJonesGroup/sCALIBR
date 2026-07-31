@@ -38,9 +38,11 @@ def computeZ(st, en, step, LFC_t, me_sd_z):
         LFC_t = LFC_t[:, None]                 # treat single series as one column
 
     mu, sd = me_sd_z[0], me_sd_z[1]
+
     if sd == 0 or not np.isfinite(sd):
         raise ValueError("Control SD is zero or invalid — cannot compute Z-scores")
 
+    print(LFC_t)
     # per-replicate Z: each rep's LFC standardized against the pooled-control null
     Z_t = (LFC_t - mu) / sd                     # (n_gRNA x n_reps)
 

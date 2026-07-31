@@ -1,15 +1,15 @@
 import numpy as np
 from scipy import stats
 
-def med_mad_MZNP(GE_vec):
+def med_mad_MZNP(LFC_t):
     """
     Compute median, MAD, modified Z-scores, mean, std, and mode for a vector.
     Implements Leys 2013 robust Z-score method.
 
     Parameters
     ----------
-    GE_vec : array_like
-        Input data vector.
+    LFC_t : array_like
+        all replicate LFC columns.
 
     Returns
     -------
@@ -27,38 +27,38 @@ def med_mad_MZNP(GE_vec):
         Mode of the input vector.
     """
 
-    GE_vec = np.array(GE_vec)
-    med = np.median(GE_vec)
+    LFC_t = np.array(LFC_t)
+    med = np.median(LFC_t)
     
-    mode_result = stats.mode(GE_vec, nan_policy='omit')
+    mode_result = stats.mode(LFC_t, nan_policy='omit')
     mod = mode_result.mode.item() 
     
     b = 1.4826  # scale factor for MAD assuming normal distribution
 
-    mad = np.median(np.abs(GE_vec - med))
+    mad = np.median(np.abs(LFC_t - med))
     mad2 = b * mad
 
     med_mad = [med, mad2]
 
-    me_sd = [np.mean(GE_vec), np.std(GE_vec, ddof=1)]
+    me_sd = [np.mean(LFC_t), np.std(LFC_t, ddof=1)]
 
     # Modified Z-scores
     if mad == 0:
-        MZ = np.zeros_like(GE_vec)
+        MZ = np.zeros_like(LFC_t)
     else:
-        MZ = 0.6745 * (GE_vec - med) / mad
+        MZ = 0.6745 * (LFC_t - med) / mad
 
     if mad2 == 0:
-        MZ2 = np.zeros_like(GE_vec)
+        MZ2 = np.zeros_like(LFC_t)
     else:
-        MZ2 = (GE_vec - med) / mad2
+        MZ2 = (LFC_t - med) / mad2
 
     # Standard Z-scores
     mean_val = me_sd[0]
     std_val = me_sd[1]
     if std_val == 0:
-        Z = np.zeros_like(GE_vec)
+        Z = np.zeros_like(LFC_t)
     else:
-        Z = (GE_vec - mean_val) / std_val
+        Z = (LFC_t - mean_val) / std_val
 
     return med_mad, MZ2, MZ, Z, me_sd, mod
