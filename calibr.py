@@ -114,7 +114,6 @@ T_target, T_control, hist, groups, bin = separate_target_control.separate_target
     target_type, control_type,
     baseline, cond1, rep_pairs, output_dir
 )
-
 # -------------------- 2.2 --------------------
 # Choose control, compute Z/MZ/crit‑LR, implement q, adjust controls for Z
 (

@@ -38,7 +38,6 @@ def q_val_frequentist_critical(alf: float,
     thrLowR = -4.5        # hard‑coded right‑tail lower bound
     S = his.sum()         # total gRNA count
     N = len(his)
-    step = bin_edges[1] - bin_edges[0]
 
     # Cumulative fractions (right & left)
     cum_R  = np.cumsum(his[::-1])[::-1]   # cumulative counts from right
@@ -63,6 +62,7 @@ def q_val_frequentist_critical(alf: float,
         lfc_crit_right = bin_edges[crit_right_ind]
         cR = lfc_crit_right
 
+    
     #critical left‑tail threshold
     crit_left_ind = np.where(p_left >= (alf + delta))[0][0]
     lfc_crit_left = bin_edges[crit_left_ind]

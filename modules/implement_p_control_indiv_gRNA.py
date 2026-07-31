@@ -8,11 +8,12 @@ def implement_p_control_indiv_grna(T_gRNA_LFC, binn, p_cont):
     Parameters
     ----------
     T_target : pandas.DataFrame
-        Target gRNA LFC table: [gRNA, gene, lfc(_<rep>)...].
+        Target gRNA LFC table: [gRNA, gene, gene_type, lfc(_<rep>)...].
     binn : array-like
         Histogram bin edges.
     p_cont : array-like
         Per-bin control p-values (1-D), aligned to ``binn``.    
+    
     Returns
     -------
     out : pandas.DataFrame
@@ -24,6 +25,7 @@ def implement_p_control_indiv_grna(T_gRNA_LFC, binn, p_cont):
     out = pd.DataFrame({
         'gRNA': T_gRNA_LFC.iloc[:, 0].values,
         'gene': T_gRNA_LFC.iloc[:, 1].values,
+        'gene_type': T_gRNA_LFC.iloc[:, 2].values,
     })
 
     for col in lfc_cols:

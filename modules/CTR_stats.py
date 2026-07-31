@@ -46,7 +46,6 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, control, outpu
     p_targ : numpy.ndarray
         Target p-curve (per-bin probability).
     """
-
     # 1. Pooled-control histogram & stats
     (binn, hiss_z, perc, crit_LR, bin_pz, med_mad, me_sd, mod, MZ, Z, n_z
     ) = make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond, control, output_dir)
