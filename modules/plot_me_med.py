@@ -25,7 +25,7 @@ def plot_me_med(tab_norm_T0, tab_norm_T1, output_dir):
     labels : list of str
         Column names corresponding to each entry in me_med, in the same order.
     """
-    # all replicate columns for each condition (whatever the count)
+    # all replicate columns for each condition
     T0 = tab_norm_T0.iloc[:, 3:].to_numpy()
     T1 = tab_norm_T1.iloc[:, 3:].to_numpy()
 
@@ -37,7 +37,6 @@ def plot_me_med(tab_norm_T0, tab_norm_T1, output_dir):
     medians = np.concatenate([med0, med1])
     me_med  = np.vstack([means, medians])
 
-    # column labels straight from the tables, so they match the data
     labels = list(tab_norm_T0.columns[3:]) + list(tab_norm_T1.columns[3:])
     
     mean_med_table = pd.DataFrame({
@@ -53,7 +52,6 @@ def plot_me_med(tab_norm_T0, tab_norm_T1, output_dir):
     bar_width = 0.6
 
     # For each sample, plot the larger value first (back) then the smaller (front),
-    # so both remain visible in a single bar position.
     for i in range(len(labels)):
         if means[i] >= medians[i]:
             plt.bar(i, means[i],   width=bar_width, color='tab:blue')    # back

@@ -19,7 +19,6 @@ def implement_p_control_indiv_grna(T_gRNA_LFC, binn, p_cont):
     out : pandas.DataFrame
             [gRNA, gene, lfc(_<rep>)..., Q(_<rep>)...] with control-calibrated q-values.
     """
-    #implement p-controls by LFC targets (instead of p-tagets)'
     lfc_cols = [c for c in T_gRNA_LFC.columns if c.startswith('lfc')]
 
     out = pd.DataFrame({

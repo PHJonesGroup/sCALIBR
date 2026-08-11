@@ -36,7 +36,7 @@ def pergene_med_horiz(T_vert, control_type):
         'Q':    collapse_table(T_vert, 'Q', 'Q').values,
     })
 
-    # 2. aggregate gRNAs -> one row per gene (median + mean + std), ANY gRNA count
+    # 2. aggregate gRNAs -> one row per gene (median + mean + std)
     g = per_grna.groupby('gene')
     med  = g.median(numeric_only=True)
     mean = g.mean(numeric_only=True)

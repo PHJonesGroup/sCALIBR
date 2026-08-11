@@ -27,7 +27,7 @@ def norm_table_individ(norm_dat, baseline, cond1):
         If a required count column (baseline/cond1) is missing from ``norm_dat``
     """
     def build_table(cond):
-        # all data columns belonging to this condition, in original order
+        # all data columns belonging to this condition
         cond_cols = [c for c in norm_dat.columns if c.startswith(f"{cond}")]
         if not cond_cols:
             raise ValueError(f"No columns found for condition '{cond}'")
@@ -37,7 +37,6 @@ def norm_table_individ(norm_dat, baseline, cond1):
             'gene':       norm_dat.iloc[:, 1].values,
             'gene_type':  norm_dat.iloc[:, 2].values,
         })
-        # attach each replicate column under its own name
         for c in cond_cols:
             tab[c] = norm_dat[c].values
         return tab

@@ -41,14 +41,13 @@ def compute_hiss_LFC(chr_lfc, st, en, step):
     ValueError
         If LFC columns are missing from ``chr_lfc``
     """
-    # all LFC columns (everything after gRNA, gene)
+    # all LFC columns (everything after gRNA, gene, gene_type)
     lfc_cols = list(chr_lfc.columns[3:])
     if not lfc_cols:
         raise ValueError("No LFC columns found (expected columns after gRNA, gene)")
 
-    LFC = chr_lfc[lfc_cols].astype(float).values      # (rows, n_lfc)
+    LFC = chr_lfc[lfc_cols].astype(float).values 
 
-    # data-driven bounds across all columns (finite values only)
     finite = LFC[np.isfinite(LFC)]
     if finite.size:
         st1, en1 = finite.min() - 1, finite.max() + 1

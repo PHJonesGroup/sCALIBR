@@ -21,9 +21,6 @@ def p_control_target_implement(T_target, T_control, binn, p_cont):
     T_q_verti : pandas.DataFrame
             [gRNA, gene, lfc(_<rep>)..., Q(_<rep>)...] with control-calibrated q-values.
     """
-    #FDR  FRR (false rejection)-correct p-values for both tails of LFC NNT distribution
-    #implement p-controls into LFC
-
     # Concatenate tables vertically 
     T_target_T_control = pd.concat([T_target, T_control], ignore_index=True)
 

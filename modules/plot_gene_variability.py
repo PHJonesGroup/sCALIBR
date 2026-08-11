@@ -97,7 +97,6 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
                     name=f"rep {r}", text=sub["sgRNA_name"] + " | " + sub["condition"],
                     hoverinfo="text+y"
                 ))
-    # restore gene names on the x-axis (we used numeric positions)
     fig.update_layout(
         title=f"Per-gene gRNA variability (GOI): {baseline} vs {cond1}",
         xaxis_title="Gene", yaxis_title="Normalised counts (CPM)",
@@ -110,7 +109,6 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
 
     n_box = 2                              # baseline + cond1 boxes
     n_pts = len(reps)                      # one scatter trace per rep
-    # visibility patterns: boxes always on; points toggled
     boxes_on_points_on  = [True]*n_box + [True]*n_pts
     boxes_on_points_off = [True]*n_box + [False]*n_pts
 

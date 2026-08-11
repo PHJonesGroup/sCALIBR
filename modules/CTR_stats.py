@@ -54,10 +54,10 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, control, outpu
     p_cont    = bin_pz[:, 1]
     hiss_cont = hiss_z
 
-    # 4. Target p-curve (pool reps if hist is 2-D)
+    # 4. Target p-curve 
     hist = np.asarray(hist)
     if hist.ndim == 2:
-        hist = hist.sum(axis=1)          # pooled counts across reps -> 1-D
+        hist = hist.sum(axis=1)
     p_targ, cL, cR, bin_pi, med_LFCp, his4p = q_val_frequentist_critical(alf, binn, hist)
 
     p_table = pd.DataFrame({

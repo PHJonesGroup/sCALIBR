@@ -62,7 +62,6 @@ def q_val_frequentist_critical(alf: float,
         lfc_crit_right = bin_edges[crit_right_ind]
         cR = lfc_crit_right
 
-    
     #critical left‑tail threshold
     crit_left_ind = np.where(p_left >= (alf + delta))[0][0]
     lfc_crit_left = bin_edges[crit_left_ind]

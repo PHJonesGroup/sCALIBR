@@ -18,8 +18,7 @@ def plot_grna_distribution(gg, output_dir):
     -------
     None
     """
-
-    counts = Counter(gg)                       # {gRNA_count: number_of_genes}
+    counts = Counter(gg)
     d = max(gg)
     x = list(range(1, d + 1))
     heights = [counts[k] for k in x]

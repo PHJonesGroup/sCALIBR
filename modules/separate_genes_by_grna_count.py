@@ -30,7 +30,7 @@ def separate_genes_by_grna_count(T_vert, ggenes, gene_names, gg, ind_gn, rep):
     """
     wt = T_vert.iloc[:, 3:(3 + 2*rep)].to_numpy()
 
-    groups = {}   # count -> dict with genes, gene_names, indices, data
+    groups = {}
     for i in range(len(gg)):
         c = gg[i]
         start = ind_gn[i] - 1

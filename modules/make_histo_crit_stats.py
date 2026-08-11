@@ -56,8 +56,8 @@ def make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond1, control
     lfc_cols = list(T_control.columns[3:])
     if not lfc_cols:
         raise ValueError("No LFC columns found after gRNA, gene")
-    LFC = T_control[lfc_cols].astype(float).values.ravel()   # flatten reps into one vector
-    LFC = LFC[np.isfinite(LFC)]                           # drop NaN/inf
+    LFC = T_control[lfc_cols].astype(float).values.ravel()      # flatten reps into one vector
+    LFC = LFC[np.isfinite(LFC)]                                 # drop NaN/inf
 
     # 2. Histogram of the pooled control LFCs
     bin_, his, perc = make_histo_LFC(step, LFC, st, en)
