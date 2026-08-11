@@ -33,9 +33,8 @@ def plot_grna_distribution(gg, output_dir):
     plt.figure()
     plt.bar(x, heights, edgecolor='black')
     plt.xticks(x)
-    plt.xlabel('number of gRNA per gene')
+    plt.xlabel('number of gRNAs per gene')
     plt.ylabel('number of genes')
-    plt.title('number of gRNA per gene distribution')
     plt.savefig(os.path.join(output_dir, "gene_distribution_gRNA.png"),
                 dpi=300, bbox_inches="tight")
     plt.close()
