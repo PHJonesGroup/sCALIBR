@@ -9,7 +9,7 @@ import argparse
 from modules import count_vertical_names, plot_grna_distribution
 from modules import separate_genes_by_grna_count
 from modules import normalise_prop, plot_gene_variability
-from modules import norm_table_individ, plot_me_med
+from modules import norm_table_individ, plot_mean_median
 from modules import separate_target_control
 from modules import CTR_stats
 from modules import p_control_target_implement
@@ -62,16 +62,15 @@ ssc     = 1 # small sample correction count
 raw_ind = pd.read_csv(input_counts)
 si_input = raw_ind.shape
 
-T_vert = raw_ind
 gRNA = raw_ind.iloc[:, 0].values  # first column (gRNA names)
 gene = raw_ind.iloc[:, 1].values  # second column (gene names)
 
 # filter dataframe for count
-keep = list(T_vert.columns[:3]) + [
-    c for c in T_vert.columns[3:]
+keep = list(raw_ind.columns[:3]) + [
+    c for c in raw_ind.columns[3:]
     if c.startswith(f"{baseline}") or c.startswith(f"{cond1}")
 ]
-T_vert = T_vert[keep]
+T_vert = raw_ind[keep]
 
 # -------------------- 1.1 --------------------
 # Counts how many times each gene name/intergenic name occurs in the raw count file & gives number of gRNA per gene/ intergenic
@@ -94,7 +93,8 @@ plot_gene_variability.plot_gene_variability(norm_dat, output_dir, baseline, cond
 # Format normalised counts, compute mean and median of normalised counts
 tab_norm_T0, tab_norm_T1 = norm_table_individ.norm_table_individ(norm_dat, baseline, cond1)
 
-plot_me_med.plot_me_med(tab_norm_T0, tab_norm_T1, output_dir)
+plot_mean_median.plot_mean_median(tab_norm_T0, tab_norm_T1, output_dir, baseline, cond1, mode='replicate')
+plot_mean_median.plot_mean_median(tab_norm_T0, tab_norm_T1, output_dir, baseline, cond1, mode='pooled')
 
 T_norm = pd.concat([tab_norm_T0, tab_norm_T1.iloc[:, 3:(3 + 2*rep)]], axis=1)
 T_norm.to_csv(os.path.join(output_dir, 'normalised_counts.csv'), index=False)
