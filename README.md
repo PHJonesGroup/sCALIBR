@@ -23,8 +23,8 @@ No non-standard hardware required.
 
 Clone the repository:
 ```
-git clone https://github.com/X/sCALIBR.git
-cd X/
+git clone https://https://github.com/PHJonesGroup/sCALIBR.git
+cd sCALIBR/
 ```
 
 Create and activate a virtual environment:
@@ -45,7 +45,7 @@ To run on your own data:
 
 1. Copy the example config: `cp config.yaml my_config.yaml`
 2. Edit the parameters (see the table below).
-3. Run: `python3 calibr.py --config my_config.yaml`
+3. Run: `python3 scalibr.py --config my_config.yaml`
 
 ### Configuration parameters
 
