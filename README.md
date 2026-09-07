@@ -1,4 +1,4 @@
-# CRISPR Analysis via Locally calIBrated Reference (CALIBR)
+# small CRISPR Analysis via Locally calIBrated Reference (sCALIBR)
 
 This pipeline is designed to find significant gRNA enrichment/depletion accounting for both FDR and FNR rates. This is achieved by calculating the likelihood of the observed gRNA fold change for each gene differing from the distribution of the set of true neutral control gRNAs in the screen.
 
@@ -23,7 +23,7 @@ No non-standard hardware required.
 
 Clone the repository:
 ```
-git clone https://github.com/X/X_code.git
+git clone https://github.com/X/sCALIBR.git
 cd X/
 ```
 
