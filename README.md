@@ -23,7 +23,7 @@ No non-standard hardware required.
 
 Clone the repository:
 ```
-git clone https://https://github.com/PHJonesGroup/sCALIBR.git
+git clone https://github.com/PHJonesGroup/sCALIBR.git
 cd sCALIBR/
 ```
 
