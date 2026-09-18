@@ -14,7 +14,7 @@ from modules import separate_target_control
 from modules import CTR_stats
 from modules import p_control_target_implement
 from modules import computeZ, make_tables_Z, plot_histograms
-from modules import volcano_grna_gene_hits, volcano_grna_gene_hits_interactive
+from modules import volcano_gRNA_gene_hits, volcano_gRNA_gene_hits_interactive
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run the pipeline.")
@@ -163,10 +163,10 @@ thr_lfch = crit_LR[1]     # right-tail critical LFC (enrichment)
 thr_lfcd = crit_LR[0]     # left-tail critical LFC (depletion)
 thrLFC_d_h = [thr_lfcd, thr_lfch]
 
-T_gRNA, T_gene = volcano_grna_gene_hits.volcano_grna_gene_hits(
+T_gRNA, T_gene = volcano_gRNA_gene_hits.volcano_gRNA_gene_hits(
     alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, baseline, cond1, control_type, output_dir)
 
-volcano_grna_gene_hits_interactive.volcano_grna_gene_hits_interactive(
+volcano_gRNA_gene_hits_interactive.volcano_gRNA_gene_hits_interactive(
     alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, baseline, cond1, control_type, output_dir)
 
 T_gRNA.to_csv(os.path.join(output_dir, f"volcano_gRNA_{cond1}_vs_{baseline}_grna.csv"), index=False)

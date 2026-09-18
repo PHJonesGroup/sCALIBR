@@ -1,8 +1,8 @@
 import numpy as np
-from .pergene_med_horiz import pergene_med_horiz
+from .perGene_med_horiz import perGene_med_horiz
 from .general_volcano import general_volcano
 
-def pergene_hits_med_horiz(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz,
+def perGene_hits_med_horiz(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz,
                              T_vert, cond, control_type):
     """
     Aggregate per-gRNA data to per-gene medians and identify gene-level hits.
@@ -39,7 +39,7 @@ def pergene_hits_med_horiz(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lf
     indhaz, inddaz : list of int
         Indices of enriched / depleted genes on the median-Z scale.
     """
-    T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z = pergene_med_horiz(T_vert, control_type)
+    T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z = perGene_med_horiz(T_vert, control_type)
 
     if not T_lfc_z_q_med.empty:
         fdr   = T_lfc_z_q_med['median_q'].values

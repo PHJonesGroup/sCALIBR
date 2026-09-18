@@ -4,10 +4,10 @@ import numpy as np
 import pandas as pd
 from plotly.subplots import make_subplots
 from .general_volcano_interactive import general_volcano_interactive
-from .pergene_hits_med_horiz import pergene_hits_med_horiz
+from .perGene_hits_med_horiz import perGene_hits_med_horiz
 from .collapse_table import collapse_table
 
-def volcano_grna_gene_hits_interactive(
+def volcano_gRNA_gene_hits_interactive(
     alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, baseline, cond, control_type, output_dir
 ):
     """
@@ -94,7 +94,7 @@ def volcano_grna_gene_hits_interactive(
     # --- Per-gene stats ---
     (
         T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z
-    ) = pergene_hits_med_horiz(
+    ) = perGene_hits_med_horiz(
         alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, cond, control_type
     )
 
