@@ -75,8 +75,14 @@ def separate_target_control(st, en, step, T_norm_indiv,
         pooled_perc = np.nanmean(perc, axis=1) if perc.ndim == 2 else perc
         groups[cat] = {'table': tab, 'perc': pooled_perc, 'hiss' : hiss}
 
-    T_target  = groups[target_type]['table']
-    hist = groups[target_type]['hiss']
+    non_control_cats = [c for c in categories if c != control_type]
+
+    T_target = pd.concat(
+        [groups[c]['table'] for c in non_control_cats],
+        ignore_index=True)
+
+    _, hist, _, _, _, _, _ = compute_hiss_LFC(T_target, st, en, step)
+    
     T_control = groups[control_type]['table'] if control_present else pd.DataFrame(columns=['gRNA', 'gene'])
 
     # plot: target + control + any other categories (skips None automatically)

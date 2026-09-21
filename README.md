@@ -29,8 +29,8 @@ cd sCALIBR/
 
 Create and activate a virtual environment:
 ```
-python -m venv venv
-source venv/bin/activate      # On Windows: venv\Scripts\activate
+python -m venv myvenv
+source myvenv/bin/activate      # On Windows: venv\Scripts\activate
 ```
 
 Install dependencies:
