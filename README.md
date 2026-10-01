@@ -66,6 +66,31 @@ To run on your own data:
 | `step`            | Bin sizes for histograms                                  | `0.05`                                |
 | `thr_lfchz`       | LFC threshold for volcano plot                            | `1.7`                                 |
 
+### Format of count file
+
+For the pipeline to run correctly, the input count file must follow this exact column order and naming convention:
+
+| sgRNA_name     | gene         | gene_type        | <baseline_name>_<replicate1>  | <baseline_name>_<replicate1>  | <cond_name>_<replicate1>      | <cond_name>_<replicate1>      |
+|----------------|--------------|------------------|-------------------------------|-------------------------------|-------------------------------|-------------------------------|
+| X_sgRNA1       | X            | GOI              |                               |                               |                               |                               |
+| X_sgRNA2       | X            | GOI              |                               |                               |                               |                               |
+| X_sgRNA3       | X            | GOI              |                               |                               |                               |                               |
+| X_sgRNA4       | X            | GOI              |                               |                               |                               |                               |
+| Y_sgRNA1       | Y            | Non-targetting   |                               |                               |                               |                               |
+| Y_sgRNA2       | Y            | Non-targetting   |                               |                               |                               |                               |
+
+**Column descriptions:**
+
+- **`sgRNA_name`** — unique identifier for each guide RNA
+- **`gene`** — the target gene for that guide
+- **`gene_type`** — guide/gene category (e.g. `GOI`, `Essential gene`, `Non-targeting`, `Intergenic`, `Zero-expressed gene`)
+- **`<baseline_name>_<replicateN>`, `<cond_name>_<replicateN>`** — raw read counts per sample, one column per replicate per condition
+
+**Notes:**
+
+- Replicates are optional. If your experiment has no replicates, include a single count column per condition (e.g. `<baseline_name>`, `<cond_name>`) instead of per-replicate columns.
+- Column order must be preserved exactly as shown — `sgRNA_name`, `gene`, `gene_type`, followed by all baseline/condition count columns.
+
 ### Outputs
 | File Name                                                     | Description                                                                                                                       |
 |---------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
