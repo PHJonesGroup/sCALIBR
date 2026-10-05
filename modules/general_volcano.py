@@ -65,7 +65,7 @@ def general_volcano(alf, sfdr_corr, thr_scoreh, thr_scored, score, fdr, cond, ge
         ax.set_ylim([0, ma])
 
         if not T_hs.empty:
-            ax.plot(T_hs['score'], -np.log10(T_hs['fdr_corr']), 'pr', linewidth=2, label='Hits')
+            ax.plot(T_hs['score'], -np.log10(T_hs['fdr_corr']), 'pr', linewidth=2, label='Enriched')
             for i in range(min(20, len(T_hs))):
                 ax.text(T_hs['score'].iloc[i], -np.log10(T_hs['fdr_corr']).iloc[i], T_hs['gene'].iloc[i], va='bottom', ha='right')
 
