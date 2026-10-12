@@ -124,7 +124,7 @@ def volcano_gRNA_gene_hits(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lf
                fontsize=12)
 
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f"volcano_gRNA_{cond}_vs_{baseline}.png"),
+    plt.savefig(os.path.join(output_dir, f"volcano_{cond}_vs_{baseline}.png"),
                 dpi=300, bbox_inches="tight")
     plt.close()
  
