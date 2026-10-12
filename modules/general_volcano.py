@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-def general_volcano(alf, sfdr_corr, thr_scoreh, thr_scored, score, fdr, cond, genes, ax=None, grna=None):
+def general_volcano(alf, sfdr_corr, thr_scoreh, thr_scored, score, fdr, genes, ax=None, grna=None):
     """
     Draw a single volcano panel and identify enriched / depleted hits.
 
@@ -19,8 +19,6 @@ def general_volcano(alf, sfdr_corr, thr_scoreh, thr_scored, score, fdr, cond, ge
         Per-point score on the x-axis (LFC or Z-corrected LFC, depending on caller).
     fdr : array-like
         Per-point FDR / q-values, aligned to ``score`` and ``genes``.
-    cond : str
-        Condition label (for context; not required for the computation).
     genes : array-like
         Gene names, aligned to ``score`` and ``fdr``, used to label hit points.
     ax : matplotlib.axes.Axes, optional

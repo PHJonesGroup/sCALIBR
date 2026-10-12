@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def lfc_table(tab, baseline, cond1, rep_pairs):
+def lfc_table(tab, baseline, cond1):
     """
    Build a per-replicate log2 fold-change table for a set of gRNAs.
 
@@ -13,8 +13,6 @@ def lfc_table(tab, baseline, cond1, rep_pairs):
         Baseline condition name / column prefix
     cond1 : str
         Treatment condition name / column prefix
-    rep_pairs : list of str or None
-        Name of replicates
 
     Returns
     -------
@@ -25,29 +23,36 @@ def lfc_table(tab, baseline, cond1, rep_pairs):
     Raises
     ------
     ValueError
-        If a required count column (baseline/cond1, with rep suffix if applicable)
-        is missing from ``tab``
+        If a required count column (baseline/cond1, with rep suffix if applicable) is missing from tab
     """
     eps = 1e-6
     out = pd.DataFrame({
-        'gRNA': tab.iloc[:, 0].values,
-        'gene': tab.iloc[:, 1].astype(str).values,
-        'gene_type' : tab.iloc[:, 2].astype(str).values,
+        'gRNA':      tab.iloc[:, 0].values,
+        'gene':      tab.iloc[:, 1].astype(str).values,
+        'gene_type': tab.iloc[:, 2].astype(str).values,
     })
 
-    if not rep_pairs:                      # None or empty -> no replicate suffixes
-        c1, c2 = baseline, cond1
-        if c1 not in tab.columns or c2 not in tab.columns:
-            raise ValueError(f"Missing {c1} or {c2}. Columns: {tab.columns.tolist()}")
-        out['lfc'] = np.log2(
-            (tab[c2].astype(float) + eps) / (tab[c1].astype(float) + eps)
+    # normalise to lists
+    if isinstance(baseline, str):
+        baseline = [baseline]
+    if isinstance(cond1, str):
+        cond1 = [cond1]
+
+    if len(baseline) != len(cond1):
+        raise ValueError(f"baseline ({baseline}) and cond1 ({cond1}) must be the same length")
+
+    for b, c in zip(baseline, cond1):
+        if b not in tab.columns or c not in tab.columns:
+            raise ValueError(f"Missing '{b}' or '{c}'. Columns: {tab.columns.tolist()}")
+        suffix = _pairing_suffix(b, c)       # e.g. 'F', 'M'
+        out[f"lfc_{suffix}"] = np.log2(
+            (tab[c].astype(float) + eps) / (tab[b].astype(float) + eps)
         ).values
-    else:                                  # replicate suffixes present
-        for r in rep_pairs:
-            c1, c2 = f"{baseline}_{r}", f"{cond1}_{r}"
-            if c1 not in tab.columns or c2 not in tab.columns:
-                raise ValueError(f"Missing {c1} or {c2}")
-            out[f"lfc_{r}"] = np.log2(
-                (tab[c2].astype(float) + eps) / (tab[c1].astype(float) + eps)
-            ).values
+
     return out
+
+def _pairing_suffix(baseline_col, cond1_col):
+    """Derive a short label for a baseline/cond1 pairing, e.g. ('T0_F','T1_F+') -> 'F'."""
+    # take the part after the last underscore of the baseline column, stripped of +/-
+    tail = baseline_col.rsplit('_', 1)[-1]          # 'T0_F' -> 'F'
+    return tail.strip('+-') or baseline_col

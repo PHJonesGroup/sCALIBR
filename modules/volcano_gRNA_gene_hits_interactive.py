@@ -8,7 +8,7 @@ from .perGene_hits_med_horiz import perGene_hits_med_horiz
 from .collapse_table import collapse_table
 
 def volcano_gRNA_gene_hits_interactive(
-    alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, baseline, cond, control_type, output_dir
+    alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, plot_name, control_type, output_dir
 ):
     """
     Draw an interactive 2x2 grid of volcano plots and return hit/depleted indices.
@@ -29,7 +29,7 @@ def volcano_gRNA_gene_hits_interactive(
     T_vert : pandas.DataFrame
         Per-gRNA table: [gRNA, gene, lfc(_<rep>)..., Z_<control_type>_lfc(_<rep>)...,
         Q(_<rep>)...].
-    baseline, cond : str
+    plot_name : str
         Condition labels, used in titles and the output filename.
     control_type : str
         Control category used for the Z columns (e.g. 'Zero-expressed gene'),
@@ -81,13 +81,13 @@ def volcano_gRNA_gene_hits_interactive(
 
     # --- Row 1, Col 1: per-gRNA LFC ---
     _, _, _, T_dsL, T_hsL, T_gRNA_L = general_volcano_interactive(
-        alf, sfdr_corr, thr_lfch, thr_lfcd, scoreL, fdr, cond, genes, grnas
+        alf, sfdr_corr, thr_lfch, thr_lfcd, scoreL, fdr, genes, grnas
     )
     add_volcano(T_gRNA_L, T_hsL, T_dsL, row=1, col=1, label="gRNA", show_legend=True)  # legend from here only
 
     # --- Row 1, Col 2: per-gRNA Z ---
     LPV, indha, indda, T_ds, T_hs, T_gRNA = general_volcano_interactive(
-        alf, sfdr_corr, thr_lfchz, thr_lfcdz, scoreZ, fdr, cond, genes, grnas
+        alf, sfdr_corr, thr_lfchz, thr_lfcdz, scoreZ, fdr, genes, grnas
     )
     add_volcano(T_gRNA, T_hs, T_ds, row=1, col=2, label="gRNA", show_legend=False)
 
@@ -95,7 +95,7 @@ def volcano_gRNA_gene_hits_interactive(
     (
         T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z
     ) = perGene_hits_med_horiz(
-        alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, cond, control_type
+        alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, control_type
     )
 
     if not T_lfc_z_q_med.empty:
@@ -105,14 +105,14 @@ def volcano_gRNA_gene_hits_interactive(
         # --- Row 2, Col 1: per-gene LFC ---
         _, _, _, T_ds2, T_hs2, T_gene2 = general_volcano_interactive(
             alf, sfdr_corr, thr_lfch, thr_lfcd,
-            T_lfc_z_q_med.iloc[:, 1].values, fdr_gene, cond, genes_gene
+            T_lfc_z_q_med.iloc[:, 1].values, fdr_gene, genes_gene
         )
         add_volcano(T_gene2, T_hs2, T_ds2, row=2, col=1, label="gene", show_legend=False)
 
         # --- Row 2, Col 2: per-gene Z ---
         _, _, _, T_ds3, T_hs3, T_gene3 = general_volcano_interactive(
             alf, sfdr_corr, thr_lfchz, thr_lfcdz,
-            T_lfc_z_q_med.iloc[:, 2].values, fdr_gene, cond, genes_gene
+            T_lfc_z_q_med.iloc[:, 2].values, fdr_gene, genes_gene
         )
         add_volcano(T_gene3, T_hs3, T_ds3, row=2, col=2, label="gene", show_legend=False)
     else:
@@ -127,7 +127,7 @@ def volcano_gRNA_gene_hits_interactive(
         for c in (1, 2):
             fig.update_yaxes(title_text="-log10(FDR)", row=r, col=c)
 
-    fig.update_layout(title=f"{cond} vs {baseline}", showlegend=True)
-    fig.write_html(os.path.join(output_dir, f"volcano_plot_interactive_{cond}_vs_{baseline}.html"))
+    fig.update_layout(title=f"{plot_name}", showlegend=True)
+    fig.write_html(os.path.join(output_dir, f"volcano_plot_interactive_{plot_name}.html"))
 
     return 1

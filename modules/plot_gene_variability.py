@@ -28,97 +28,94 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
     -------
     None
     """
+    if isinstance(baseline, str):
+        baseline = [baseline]
+    if isinstance(cond1, str):
+        cond1 = [cond1]
+
     gt = T_norm["gene_type"].astype(str).str.strip()
     goi = T_norm[gt == target_type].copy()
     if goi.empty:
         raise ValueError(f"No rows with gene_type == '{target_type}'")
 
-    id_cols = list(goi.columns[:2]) + ["gene_type"]           # sgRNA_name, gene, gene_type
+    id_cols = list(goi.columns[:2]) + ["gene_type"]      # sgRNA_name, gene, gene_type
 
-    # map each count column -> (condition, replicate)
-    def parse_col(c):
-        for cond in (baseline, cond1):
-            if c == cond:                       # no-rep case: column IS the condition
-                return cond, "rep1"
-            if c.startswith(f"{cond}_"):        # rep case: <cond>_<rep>
-                return cond, c[len(cond) + 1:]
-        return None, None                       # not one of our two conditions
+    # map each count column -> (group, sub_condition)
+    # group is 'baseline'/'cond1' (for the two boxes); sub is the column itself (F/M)
+    col_info = {}
+    for c in baseline:
+        if c in goi.columns:
+            col_info[c] = ("baseline", c)
+    for c in cond1:
+        if c in goi.columns:
+            col_info[c] = ("cond1", c)
 
-    col_info = {c: parse_col(c) for c in goi.columns if c not in id_cols}
-    count_cols = [c for c, (cond, _) in col_info.items() if cond is not None]
+    count_cols = list(col_info.keys())
     if not count_cols:
         raise ValueError(f"No columns for {baseline} or {cond1}. Cols: {goi.columns.tolist()}")
 
-    # long format with condition + rep columns
+    # long format
     long = goi.melt(id_vars=id_cols, value_vars=count_cols,
                     var_name="sample", value_name="CPM")
     long["CPM"] = pd.to_numeric(long["CPM"], errors="coerce")
     long = long.dropna(subset=["CPM"])
-    long["condition"] = long["sample"].map(lambda c: col_info[c][0])
-    long["rep"]       = long["sample"].map(lambda c: col_info[c][1])
+    long["group"] = long["sample"].map(lambda c: col_info[c][0])   # baseline / cond1
+    long["sub"]   = long["sample"].map(lambda c: col_info[c][1])   # the column (F / M)
 
     # order genes by overall median CPM
     order = long.groupby("gene")["CPM"].median().sort_values().index.tolist()
-
     gene_to_x = {g: i for i, g in enumerate(order)}
     long["x"] = long["gene"].map(gene_to_x)
 
     fig = go.Figure()
 
-    # box offset: baseline shifted left, cond1 right (matches boxmode='group' spacing)
     offset = 0.2
-    cond_offset = {baseline: -offset, cond1: +offset}
-    cond_colors = {baseline: "rgba(31,119,180,0.5)", cond1: "rgba(255,127,14,0.5)"}
+    group_offset = {"baseline": -offset, "cond1": +offset}
+    group_colors = {"baseline": "rgba(31,119,180,0.5)", "cond1": "rgba(255,127,14,0.5)"}
+    group_label  = {"baseline": "baseline", "cond1": "cond1"}
 
-    # --- one box per condition, placed at the offset numeric x ---
-    for cond in (baseline, cond1):
-        sub = long[long["condition"] == cond]
+    # one box per group (baseline / cond1), pooling its sub-condition columns
+    for grp in ("baseline", "cond1"):
+        sub = long[long["group"] == grp]
+        if sub.empty:
+            continue
         fig.add_trace(go.Box(
-            x=sub["x"] + cond_offset[cond], y=sub["CPM"],
-            name=cond, marker_color=cond_colors[cond],
+            x=sub["x"] + group_offset[grp], y=sub["CPM"],
+            name=group_label[grp], marker_color=group_colors[grp],
             width=0.35, boxpoints=False, showlegend=True
         ))
 
-    # --- points coloured by rep, offset to sit inside their condition's box ---
-    reps = sorted(long["rep"].unique())
+    # points coloured by sub-condition (F / M), offset into their group's box
+    subs = sorted(long["sub"].unique())
     palette = ["#111111", "#e41a1c", "#377eb8", "#4daf4a",
                "#984ea3", "#ff7f00", "#a65628", "#f781bf"]
-    rep_color = {r: palette[i % len(palette)] for i, r in enumerate(reps)}
+    sub_color = {s: palette[i % len(palette)] for i, s in enumerate(subs)}
 
-    rng = np.random.default_rng(0)                 # small jitter so points don't stack
-    for r in reps:
-        sub = long[long["rep"] == r]
-        xpos = (sub["x"]
-                + sub["condition"].map(cond_offset)
-                + rng.uniform(-0.05, 0.05, len(sub)))   # jitter within the box
+    rng = np.random.default_rng(0)
+    for s in subs:
+        ss = long[long["sub"] == s]
+        xpos = (ss["x"]
+                + ss["group"].map(group_offset)
+                + rng.uniform(-0.05, 0.05, len(ss)))
         fig.add_trace(go.Scatter(
-                    x=xpos, y=sub["CPM"], mode="markers",
-                    marker=dict(color=rep_color[r], size=10, opacity=0.85),
-                    name=f"rep {r}", text=sub["sgRNA_name"] + " | " + sub["condition"],
-                    hoverinfo="text+y"
-                ))
-    fig.update_layout(
-        title=f"Per-gene gRNA variability (GOI): {baseline} vs {cond1}",
-        xaxis_title="Gene", yaxis_title="Normalised counts (CPM)",
-        xaxis=dict(tickmode="array",
-                   tickvals=list(gene_to_x.values()),
-                   ticktext=list(gene_to_x.keys())),
-        yaxis_title_standoff=10,
-        legend_title="Condition / Replicate",
-    )
+            x=xpos, y=ss["CPM"], mode="markers",
+            marker=dict(color=sub_color[s], size=10, opacity=0.85),
+            name=str(s), text=ss["sgRNA_name"] + " | " + ss["sub"],
+            hoverinfo="text+y"
+        ))
 
-    n_box = 2                              # baseline + cond1 boxes
-    n_pts = len(reps)                      # one scatter trace per rep
+    n_box = 2
+    n_pts = len(subs)
     boxes_on_points_on  = [True]*n_box + [True]*n_pts
     boxes_on_points_off = [True]*n_box + [False]*n_pts
 
     fig.update_layout(
-        title=f"Per-gene CPM variability (GOI): {baseline} vs {cond1}",
+        title=f"Per-gene CPM variability ({target_type})",
         xaxis_title="Gene", yaxis_title="Normalised counts (CPM)",
         xaxis=dict(tickmode="array",
                    tickvals=list(gene_to_x.values()),
                    ticktext=list(gene_to_x.keys())),
-        legend_title="Condition / Replicate",
+        legend_title="Condition / Sub-condition",
         updatemenus=[dict(
             type="buttons", direction="right",
             x=1.0, y=1.12, xanchor="right",

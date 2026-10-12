@@ -7,7 +7,7 @@ import pandas as pd
 
 def separate_target_control(st, en, step, T_norm_indiv,
                             target_type, control_type,
-                            baseline, cond1, rep_pairs, output_dir,
+                            baseline, cond1, output_dir,
                             gene_type_column="gene_type"):
     """
     Split gRNAs by the gene_type column, compute per-rep LFC distributions per category, and plot them.
@@ -28,8 +28,6 @@ def separate_target_control(st, en, step, T_norm_indiv,
         Baseline condition name / column prefix
     cond1 : str
         Treatment condition name / column prefix
-    rep_pairs : list of str or None
-        Name of replicates
     output_dir : str
         Directory where the distribution plot is saved.
     gene_type_column : str, optional
@@ -69,7 +67,7 @@ def separate_target_control(st, en, step, T_norm_indiv,
 
     for cat in categories:
         rows = T_norm_indiv[gt == cat]
-        tab = lfc_table(rows, baseline, cond1, rep_pairs)
+        tab = lfc_table(rows, baseline, cond1)
         # pooled histogram: flatten all rep LFC columns into one distribution
         binn, hiss, perc, LFC, lfc_cols, st1, en1 = compute_hiss_LFC(tab, st, en, step)
         pooled_perc = np.nanmean(perc, axis=1) if perc.ndim == 2 else perc

@@ -3,7 +3,7 @@ from .perGene_med_horiz import perGene_med_horiz
 from .general_volcano import general_volcano
 
 def perGene_hits_med_horiz(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz,
-                             T_vert, cond, control_type):
+                             T_vert, control_type):
     """
     Aggregate per-gRNA data to per-gene medians and identify gene-level hits.
 
@@ -20,8 +20,6 @@ def perGene_hits_med_horiz(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lf
     T_vert : pandas.DataFrame
         Per-gRNA table: [gRNA, gene, lfc(_<rep>)..., Z_<control_type>_lfc(_<rep>)...,
         Q(_<rep>)...].
-    cond : str
-        Condition label (passed through to the hit-calling step).
     control_type : str
         Control category used in the Z column names (e.g. 'Zero-expressed gene'),
         needed to locate the 'Z_<control_type>_lfc' columns.
