@@ -192,8 +192,8 @@ def main():
     volcano_gRNA_gene_hits_interactive.volcano_gRNA_gene_hits_interactive(
         alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, baseline, cond1, control_type, output_dir)
 
-    T_gRNA.to_csv(os.path.join(output_dir, f"volcano_gRNA_{cond1}_vs_{baseline}_grna.csv"), index=False)
-    T_gene.to_csv(os.path.join(output_dir, f"volcano_gRNA_{cond1}_vs_{baseline}_gene.csv"), index=False)
+    T_gRNA.to_csv(os.path.join(output_dir, f"volcano_{cond1}_vs_{baseline}_grna.csv"), index=False)
+    T_gene.to_csv(os.path.join(output_dir, f"volcano_{cond1}_vs_{baseline}_gene.csv"), index=False)
 
 if __name__ == "__main__":
     main()
