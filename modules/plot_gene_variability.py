@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 import os
+import plotly.io as pio
+import json
 
 def plot_gene_variability(T_norm, output_dir, baseline, cond1,
                           target_type="GOI"):
@@ -60,10 +62,20 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
     long["CPM"] = pd.to_numeric(long["CPM"], errors="coerce")
     long = long.dropna(subset=["CPM"])
     long["group"] = long["sample"].map(lambda c: col_info[c][0])   # baseline / cond1
-    long["sub"]   = long["sample"].map(lambda c: col_info[c][1])   # the column (F / M)
+    long["sub"]   = long["sample"].map(lambda c: col_info[c][1])   # the replicates
+ 
+    # keep only the top-N most variable genes 
+    top_n = 100
+    # SD within baseline and within cond1 per gene; take the larger of the two
+    sd_by_group = (long.groupby(["gene", "group"])["CPM"]
+                       .std()
+                       .unstack("group"))                      # columns: baseline, cond1
+    gene_variability = sd_by_group.max(axis=1)                 # largest SD across the two groups
+    top_genes = gene_variability.sort_values(ascending=False).head(top_n).index
+    long = long[long["gene"].isin(top_genes)].copy()
 
-    # order genes by overall median CPM
-    order = long.groupby("gene")["CPM"].median().sort_values().index.tolist()
+    # order genes by largest SD (most variable first)
+    order = gene_variability.loc[top_genes].sort_values(ascending=False).index.tolist()
     gene_to_x = {g: i for i, g in enumerate(order)}
     long["x"] = long["gene"].map(gene_to_x)
 
@@ -127,5 +139,61 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
             ],
         )],
     )
+    plot_div = pio.to_html(fig, include_plotlyjs="cdn", full_html=False,
+                           div_id="genePlot")
+
+    # a gene -> x-position lookup the JS can use to locate/zoom a gene
+    import json
+    gene_x_json = json.dumps(gene_to_x)
+
+    html = f"""<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body>
+  <div style="margin:10px 0; font-family:sans-serif;">
+    <label>Search gene: </label>
+    <input type="text" id="geneSearch" placeholder="e.g. Trp53"
+           style="padding:4px; width:200px;">
+    <button onclick="clearSearch()">Reset</button>
+    <span id="searchMsg" style="margin-left:10px; color:#666;"></span>
+  </div>
+  {plot_div}
+
+  <script>
+    const geneX = {gene_x_json};
+    const plot = document.getElementById('genePlot');
+
+    function searchGene() {{
+      const q = document.getElementById('geneSearch').value.trim().toLowerCase();
+      const msg = document.getElementById('searchMsg');
+      if (!q) {{ clearSearch(); return; }}
+
+      // find matching gene(s)
+      const matches = Object.keys(geneX).filter(g => g.toLowerCase().includes(q));
+      if (matches.length === 0) {{
+        msg.textContent = 'no match';
+        return;
+      }}
+      // zoom the x-axis to the matching gene(s)
+      const xs = matches.map(g => geneX[g]);
+      const lo = Math.min(...xs) - 1;
+      const hi = Math.max(...xs) + 1;
+      Plotly.relayout(plot, {{'xaxis.range': [lo, hi]}});
+      msg.textContent = matches.length + ' match' + (matches.length>1?'es':'') + ': ' + matches.join(', ');
+    }}
+
+    function clearSearch() {{
+      document.getElementById('geneSearch').value = '';
+      document.getElementById('searchMsg').textContent = '';
+      Plotly.relayout(plot, {{'xaxis.autorange': true}});
+    }}
+
+    // search as you type (debounced lightly)
+    document.getElementById('geneSearch').addEventListener('input', searchGene);
+  </script>
+</body>
+</html>"""
+
     out = os.path.join(output_dir, "gene_variability_boxplots.html")
-    fig.write_html(out, include_plotlyjs="cdn")
+    with open(out, "w") as f:
+        f.write(html)
