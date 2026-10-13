@@ -91,7 +91,7 @@ contrasts:
 
 For the pipeline to run correctly, the input count file must follow this exact column order and naming convention:
 
-| sgRNA_name     | gene         | gene_type        | '<baseline_name>_<replicateN>'  | '<cond_name>_<replicateN>'      |
+| sgRNA_name     | gene         | gene_type        | `<baseline_name>_<replicateN>`  | `<cond_name>_<replicateN>`      |
 |----------------|--------------|------------------|---------------------------------|---------------------------------|
 | X_sgRNA1       | X            | GOI              |                                 |                                 |
 | X_sgRNA2       | X            | GOI              |                                 |                                 |
