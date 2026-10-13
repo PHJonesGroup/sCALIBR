@@ -138,7 +138,7 @@ Counts number of gRNA per gene/ intergenic <br />
 Compute mean and median of normalised counts <br />
 
 ### Module 2
-Compute and analyse LFC distributions of targets and controls (target, intergenic and zero expressed genes) <br />
+Compute and analyse LFC distributions of targets and controls <br />
 Compute q-values, critical values, mean and standard deviation for zero expressed genes controls. <br />
 Compute z for targets and all controls, based on mean and standard deviation of zero expressed genes and controls. <br />
 Determine significant gRNA enrichment/depletion accounting for both FDR and FNR rates <br />

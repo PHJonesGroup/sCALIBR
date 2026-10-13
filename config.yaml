@@ -1,20 +1,23 @@
 # -------------------- Parameters --------------------
 
-input_counts    : "data_input/milan_raw_genetype.csv"
-output_dir      : "output_milan/"
-rep             : 4                                   # number of replicates per condition
-keep_counts     : [1, 4, 10]                          #number of gRNAs expected per genes
-alf             : 0.06                                # significance level of right-left tail of distribution
+input_counts    : "data/crispr_raw_counts.csv"
+output_dir      : "output/"
+keep_counts     : [1, 4]                        #number of gRNAs expected per genes
+alf             : 0.06                          # significance level of right-left tail of distribution
 
 # Patterns for filtering 
 target_type     : 'GOI'    
-control_type    : 'Non-targeting'
-baseline        : 'T0'                                #baseline condition
-cond            : '5FU'                               #treatment condition
-rep_pairs       : ['60159','60160','60161','60162']   #replicate names
+control_type    : 'Zero-expressed gene'
+contrasts:
+  - name: T1_vs_T0                              # two replicates contrast
+    baseline: [T0_F, T0_M]
+    cond1:    [T1_F, T1_M]
+  - name: T1_vs_T0_F_only                       # one replicate contrast
+    baseline: [T0_F]
+    cond1:    [T1_F]
 
 # Plotting parameters
-st              : -10                                 # x axis start
-en              : 10                                  # x axis end
-step            : 0.05                                # bin steps
-thr_lfchz       : 1.7                                 # LCF threshold
+st              : -10                           # x axis start
+en              : 10                            # x axis end
+step            : 0.05                          # bin steps
+thr_lfchz       : 1.7                           # LCF threshold
