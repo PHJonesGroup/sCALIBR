@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.patches import Patch
 import os
+import matplotlib as mpl
+mpl.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['ps.fonttype'] = 42
 
 def plot_mean_median(tab_norm_T0, tab_norm_T1, output_dir, baseline_label, condition_label, mode='replicate'):
     """
@@ -40,9 +43,7 @@ def plot_mean_median(tab_norm_T0, tab_norm_T1, output_dir, baseline_label, condi
     if mode not in ('replicate', 'pooled'):
         raise ValueError("mode must be either 'replicate' or 'pooled'")
 
-    # ========================================
     # MODE 1: PER-REPLICATE 
-    # ========================================
     if mode == 'replicate':
         T0 = tab_norm_T0.iloc[:, 3:].to_numpy()
         T1 = tab_norm_T1.iloc[:, 3:].to_numpy()
@@ -57,11 +58,9 @@ def plot_mean_median(tab_norm_T0, tab_norm_T1, output_dir, baseline_label, condi
 
         plot_title = 'Mean and Median of normalised read counts (per replicate)'
         csv_name = "normalised_counts_mean_med_data_replicate.csv"
-        png_name = "normalised_counts_mean_med_replicate.png"
+        pdf_name = "normalised_counts_mean_med_replicate.pdf"
 
-    # ========================================
     # MODE 2: POOLED BY GENE_TYPE
-    # ========================================
     else:
         gene_types = sorted(
             set(tab_norm_T0['gene_type'].unique()) | set(tab_norm_T1['gene_type'].unique())
@@ -89,7 +88,7 @@ def plot_mean_median(tab_norm_T0, tab_norm_T1, output_dir, baseline_label, condi
 
         plot_title = 'Mean and Median of normalised read counts (pooled by gene type)'
         csv_name = "normalised_counts_mean_med_data_pooled.csv"
-        png_name = "normalised_counts_mean_med_pooled.png"
+        pdf_name = "normalised_counts_mean_med_pooled.png"
 
     me_med = np.vstack([means, medians])
 
@@ -128,8 +127,8 @@ def plot_mean_median(tab_norm_T0, tab_norm_T1, output_dir, baseline_label, condi
                bbox_to_anchor=(1.02, 0.5), borderaxespad=0., frameon=False)
     plt.tight_layout()
 
-    out_path = os.path.join(output_dir, png_name)
-    plt.savefig(out_path, dpi=300, bbox_inches="tight")
+    out_path = os.path.join(output_dir, pdf_name)
+    plt.savefig(out_path, bbox_inches="tight")
     plt.close()
 
     return me_med, labels

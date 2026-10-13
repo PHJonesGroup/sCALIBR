@@ -4,6 +4,9 @@ import os
 import matplotlib.pyplot as plt
 from .make_histo_crit_stats import make_histo_crit_stats
 from .q_val_frequentist_critical import q_val_frequentist_critical
+import matplotlib as mpl
+mpl.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['ps.fonttype'] = 42
 
 def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name, control, output_dir):
     """
@@ -76,8 +79,8 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name, con
     plt.ylabel("Probability")
     plt.legend()
     plt.grid(True)
-    plt.savefig(os.path.join(output_dir, f"p_distri_targ_cont_{plot_name}.png"),
-                dpi=300, bbox_inches="tight")
+    plt.savefig(os.path.join(output_dir, f"p_distri_targ_cont_{plot_name}.pdf"),
+                bbox_inches="tight")
     plt.close()
 
     return crit_LR, me_sd, med_mad, binn, p_cont, hiss_cont, p_targ

@@ -1,6 +1,9 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
+import matplotlib as mpl
+mpl.rcParams['pdf.fonttype'] = 42      # TrueType — text stays editable
+mpl.rcParams['ps.fonttype'] = 42
 
 def normalise_prop(ssc, raw_ind, output_dir):
     """
@@ -55,8 +58,8 @@ def normalise_prop(ssc, raw_ind, output_dir):
     plt.ylabel("Normalised proportion")
 
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, "gRNA_counts_normalisation.png"),
-                dpi=300, bbox_inches="tight")
+    plt.savefig(os.path.join(output_dir, "gRNA_counts_normalisation.pdf"),
+                bbox_inches="tight")
     plt.close()
 
     norm_df = raw_ind.iloc[:, :3].copy()

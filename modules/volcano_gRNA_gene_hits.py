@@ -2,6 +2,10 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np
 import pandas as pd
+import matplotlib as mpl
+mpl.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['ps.fonttype'] = 42
+
 from .general_volcano import general_volcano
 from .perGene_hits_med_horiz import perGene_hits_med_horiz
 from .collapse_table import collapse_table
@@ -124,8 +128,8 @@ def volcano_gRNA_gene_hits(alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lf
                fontsize=12)
 
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f"volcano_{plot_name}.png"),
-                dpi=300, bbox_inches="tight")
+    plt.savefig(os.path.join(output_dir, f"volcano_{plot_name}.pdf"),
+                bbox_inches="tight")
     plt.close()
  
     return T_gRNA, T_gene

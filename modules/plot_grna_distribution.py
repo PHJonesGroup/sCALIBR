@@ -2,6 +2,9 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 from collections import Counter
+import matplotlib as mpl
+mpl.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['ps.fonttype'] = 42
 
 def plot_grna_distribution(gg, output_dir):
     """
@@ -12,7 +15,7 @@ def plot_grna_distribution(gg, output_dir):
     gg : list of int
         Number of gRNAs for each gene (one entry per gene).
     output_dir : str
-        Directory where the plot 'gene_distribution_gRNA.png' is saved.
+        Directory where the plot is saved.
     
     Returns
     -------
@@ -34,7 +37,7 @@ def plot_grna_distribution(gg, output_dir):
     plt.xticks(x)
     plt.xlabel('number of gRNAs per gene')
     plt.ylabel('number of genes')
-    plt.savefig(os.path.join(output_dir, "gene_distribution_gRNA.png"),
-                dpi=300, bbox_inches="tight")
+    plt.savefig(os.path.join(output_dir, "gene_distribution_gRNA.pdf"),
+                bbox_inches="tight")
     plt.close()
     

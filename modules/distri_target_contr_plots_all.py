@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
+import matplotlib as mpl
+mpl.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['ps.fonttype'] = 42
 
 def _as_pooled_1d(perc):
     if perc is None:
@@ -60,8 +63,8 @@ def distri_target_contr_plots_all(binn, category_percs, highlight, title, output
         if k == n:
             plt.xlabel('LFC', fontsize=12)
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f"distri_gene_types_{title}.png"),
-                dpi=300, bbox_inches="tight")
+    plt.savefig(os.path.join(output_dir, f"distri_gene_types_{title}.pdf"),
+                bbox_inches="tight")
     plt.close()
 
     # ---- Figure 2: all categories overlaid ----
@@ -75,7 +78,7 @@ def distri_target_contr_plots_all(binn, category_percs, highlight, title, output
     plt.ylabel('%', fontsize=12)
     plt.legend()
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f"distri_gene_types_overlaid_{title}.png"),
-                dpi=300, bbox_inches="tight")
+    plt.savefig(os.path.join(output_dir, f"distri_gene_types_overlaid_{title}.pdf"),
+                bbox_inches="tight")
     plt.close()
     return 1
