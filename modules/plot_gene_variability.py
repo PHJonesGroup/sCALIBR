@@ -97,7 +97,7 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
         xpos = (ss["x"]
                 + ss["group"].map(group_offset)
                 + rng.uniform(-0.05, 0.05, len(ss)))
-        fig.add_trace(go.Scatter(
+        fig.add_trace(go.Scattergl(
             x=xpos, y=ss["CPM"], mode="markers",
             marker=dict(color=sub_color[s], size=10, opacity=0.85),
             name=str(s), text=ss["sgRNA_name"] + " | " + ss["sub"],
@@ -128,4 +128,4 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
         )],
     )
     out = os.path.join(output_dir, "gene_variability_boxplots.html")
-    fig.write_html(out)
+    fig.write_html(out, include_plotlyjs="cdn")
