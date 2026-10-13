@@ -7,7 +7,7 @@ import pandas as pd
 
 def separate_target_control(st, en, step, T_norm_indiv,
                             target_type, control_type,
-                            baseline, cond1, output_dir,
+                            baseline, cond1, plot_name, output_dir,
                             gene_type_column="gene_type"):
     """
     Split gRNAs by the gene_type column, compute per-rep LFC distributions per category, and plot them.
@@ -83,7 +83,7 @@ def separate_target_control(st, en, step, T_norm_indiv,
     distri_target_contr_plots_all(
         binn, plot_categories,
         highlight=target_type,                
-        title=f"{cond1}_vs_{baseline}",
+        title=f"{plot_name}",
         output_dir=output_dir,
     )
 

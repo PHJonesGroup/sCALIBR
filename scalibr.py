@@ -142,7 +142,7 @@ def main():
         # (4) Normalised targeted genes
 
         T_target, T_control, hist, groups, bin = separate_target_control.separate_target_control(
-            st, en, step, T_norm, target_type, control_type, baseline, cond1, c_outdir)
+            st, en, step, T_norm, target_type, control_type, baseline, cond1, name, c_outdir)
         # -------------------- 2.2 --------------------
         # Choose control, compute Z/MZ/crit‑LR, implement q, adjust controls for Z
         (
@@ -161,7 +161,8 @@ def main():
             T_control,          
             hist,         
             baseline,          
-            cond1,          
+            cond1,
+            name,          
             control_type,
             c_outdir
         )

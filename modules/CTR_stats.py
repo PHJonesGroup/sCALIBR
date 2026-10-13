@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from .make_histo_crit_stats import make_histo_crit_stats
 from .q_val_frequentist_critical import q_val_frequentist_critical
 
-def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, control, output_dir):
+def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name, control, output_dir):
     """
     Calibrate a control null and score targets against it.
 
@@ -48,7 +48,7 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, control, outpu
     """
     # 1. Pooled-control histogram & stats
     (binn, hiss_z, perc, crit_LR, bin_pz, med_mad, me_sd, mod, MZ, Z, n_z
-    ) = make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond, control, output_dir)
+    ) = make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond, plot_name, control, output_dir)
 
     # 3. Control p-curve & histogram
     p_cont    = bin_pz[:, 1]
@@ -65,18 +65,18 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, control, outpu
         f"control_{control}": np.round(p_cont,1),
         f"target": np.round(p_targ,1)})
     p_table.to_csv(
-        os.path.join(output_dir, f"p_distri_targ_cont_{cond}_vs_{baseline}_data.csv"), index=False)
+        os.path.join(output_dir, f"p_distri_targ_cont_{plot_name}_data.csv"), index=False)
 
     # 5. Plot: target vs. control p-curves
     plt.figure()
     plt.plot(binn, p_cont, color="0.5", linestyle="--", label=f"control ({control})")
     plt.plot(binn, p_targ, color="C3", linestyle="-",  label="target")
-    plt.title(f"Target vs. {control} gRNAs ({cond} vs {baseline})")
+    plt.title(f"Target vs. {control} gRNAs ({plot_name})")
     plt.xlabel("LFC bin")
     plt.ylabel("Probability")
     plt.legend()
     plt.grid(True)
-    plt.savefig(os.path.join(output_dir, f"p_distri_targ_cont_{cond}_vs_{baseline}.png"),
+    plt.savefig(os.path.join(output_dir, f"p_distri_targ_cont_{plot_name}.png"),
                 dpi=300, bbox_inches="tight")
     plt.close()
 

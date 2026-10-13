@@ -5,7 +5,7 @@ from .compute_p_critLFC import compute_p_critLFC
 from .med_mad_MZNP import med_mad_MZNP
 from .plot_histograms import plot_histograms
 
-def make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond1, control, output_dir):
+def make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond1, plot_name, control, output_dir):
     """
     Histograms, critical LFC thresholds, and stats for control genes
     (baseline vs cond1), pooling all replicate LFC columns.
@@ -73,8 +73,8 @@ def make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond1, control
     _, _, perc_mz = make_histo_LFC(step, MZ, st, en)
     plot_histograms(
         bin_, perc, perc_z, perc_mz,
-        title=f'Distribution of {control} gRNAs: {cond1} vs {baseline}',
+        title=f'Distribution of {control} gRNAs: {plot_name}',
         color='b', xlab='LFC',
-        save_name=f'distri_LFC_{control}_{cond1}_vs_{baseline}', output_dir=output_dir)
+        save_name=f'distri_LFC_{control}_{plot_name}', output_dir=output_dir)
 
     return bin_, his, perc, crit_LR, bin_p, med_mad, me_sd, mod, MZ, Z, len(LFC)
