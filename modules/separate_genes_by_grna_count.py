@@ -1,6 +1,6 @@
 import numpy as np
 
-def separate_genes_by_grna_count(T_vert, ggenes, gene_names, gg, ind_gn, rep):
+def separate_genes_by_grna_count(T_vert, ggenes, gene_names, gg, ind_gn):
     """
     Buckets every gene into a dictionary keyed by its gRNA count.
 
@@ -16,8 +16,6 @@ def separate_genes_by_grna_count(T_vert, ggenes, gene_names, gg, ind_gn, rep):
         Number of gRNAs for each gene in ``ggenes``
     ind_gn : list of int
         List of start indices (1-based) for each group in ``gene_names`` / T_vert.
-    rep : int
-        Number of replicates per condition (used to slice the count columns).
 
     Returns
     -------
@@ -28,7 +26,7 @@ def separate_genes_by_grna_count(T_vert, ggenes, gene_names, gg, ind_gn, rep):
         - 'ind'        : list of int, 0-based row indices into T_vert
         - 'wt'         : ndarray (n_gRNA x n_count_cols), stacked count data
     """
-    wt = T_vert.iloc[:, 3:(3 + 2*rep)].to_numpy()
+    wt = T_vert.iloc[:, 3:].to_numpy()
 
     groups = {}
     for i in range(len(gg)):

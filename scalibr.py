@@ -64,10 +64,8 @@ def main():
 
     keep_counts = config["keep_counts"]
     alf = config["alf"]
-
     target_type = config["target_type"]
     control_type = config["control_type"]
-
     st = config["st"]
     en = config["en"]
     step = config["step"]
@@ -77,62 +75,59 @@ def main():
     sfdr_corr = 0.0001 # constant to avoid log10(0)
     ssc     = 1 # small sample correction count
 
+    # ============================ MODULE 1 ============================
+    T_vert = pd.read_csv(input_counts)
+    si_input = T_vert.shape
+
+    gRNA = T_vert.iloc[:, 0].values  # first column (gRNA names)
+    gene = T_vert.iloc[:, 1].values  # second column (gene names)
+
+    # -------------------- 1.1 --------------------
+    # Counts how many times each gene name/intergenic name occurs in the raw count file & gives number of gRNA per gene/ intergenic
+    gene_names = gene
+    ggenes, gg, ind_gn = count_vertical_names.count_vertical_names(gene_names)
+    plot_grna_distribution.plot_grna_distribution(gg, output_dir)
+
+    # -------------------- 1.2 --------------------
+    # Removes genes with incorrect number of gRNAs
+    groups = separate_genes_by_grna_count.separate_genes_by_grna_count(T_vert, ggenes, gene_names, gg, ind_gn)
+    ind_keep = sum((groups[c]["ind"] for c in keep_counts if c in groups), [])
+    T_vert_f = T_vert.iloc[ind_keep, :].reset_index(drop=True)
+
+    # -------------------- 1.3 --------------------
+    # Normalise (CPM) counts as percentage within a column
+    norm_dat = normalise_prop.normalise_prop(ssc, T_vert_f, output_dir) 
+    norm_dat.to_csv(os.path.join(output_dir, 'normalised_counts.csv'), index=False)
+    
+    # loops over contrasts
     for contrast in config["contrasts"]:
         name     = contrast["name"]
         baseline = contrast["baseline"]
-        cond1    = contrast["cond1"]
+        cond1    = contrast["treatment"]
 
-        if len(contrast["baseline"]) != len(contrast["cond1"]):
-            sys.exit(f"Contrast {c['name']}: baseline and cond1 must have equal length")
+        if len(baseline) != len(cond1):
+            sys.exit(f"Contrast {name}: baseline and cond1 must have equal length")
 
-        rep = len(contrast["baseline"])
         c_outdir = output_dir / name
         c_outdir.mkdir(parents=True, exist_ok=True)
 
-        # ============================ MODULE 1 ============================
-        raw_ind = pd.read_csv(input_counts)
-        si_input = raw_ind.shape
-
-        gRNA = raw_ind.iloc[:, 0].values  # first column (gRNA names)
-        gene = raw_ind.iloc[:, 1].values  # second column (gene names)
-
-        # filter dataframe for count
+            # filter dataframe for count
         wanted_prefixes = baseline + cond1          # e.g. ['T0_F','T0_M','T1_F+','T1_M+']
-        keep = list(raw_ind.columns[:3]) + [
-            c for c in raw_ind.columns[3:]
+        keep = list(norm_dat.columns[:3]) + [
+            c for c in norm_dat.columns[3:]
             if any(c == p for p in wanted_prefixes)
         ]
-        T_vert = raw_ind[keep]
+        norm_dat_filtered = norm_dat[keep]
 
-        # -------------------- 1.1 --------------------
-        # Counts how many times each gene name/intergenic name occurs in the raw count file & gives number of gRNA per gene/ intergenic
-        gene_names = gene
-        ggenes, gg, ind_gn = count_vertical_names.count_vertical_names(gene_names)
-        plot_grna_distribution.plot_grna_distribution(gg, c_outdir)
-
-        # -------------------- 1.2 --------------------
-        # Removes genes with incorrect number of gRNAs
-        groups = separate_genes_by_grna_count.separate_genes_by_grna_count(T_vert, ggenes, gene_names, gg, ind_gn, rep)
-        ind_keep = sum((groups[c]["ind"] for c in keep_counts if c in groups), [])
-        raw_ind_f = T_vert.iloc[ind_keep, :].reset_index(drop=True)
-
-        # -------------------- 1.3 --------------------
-        # Normalise (CPM) counts as percentage within a column
-        norm_dat = normalise_prop.normalise_prop(ssc, raw_ind_f, c_outdir) 
-        plot_gene_variability.plot_gene_variability(norm_dat, c_outdir, baseline, cond1, target_type)
+        plot_gene_variability.plot_gene_variability(norm_dat_filtered, c_outdir, baseline, cond1, target_type)
 
         # -------------------- 1.4 --------------------
         # Format normalised counts, compute mean and median of normalised counts
-        tab_norm_T0, tab_norm_T1 = norm_table_individ.norm_table_individ(norm_dat, baseline, cond1)
-
+        tab_norm_T0, tab_norm_T1 = norm_table_individ.norm_table_individ(norm_dat_filtered, baseline, cond1)
         plot_mean_median.plot_mean_median(tab_norm_T0, tab_norm_T1, c_outdir, baseline, cond1, mode='replicate')
         plot_mean_median.plot_mean_median(tab_norm_T0, tab_norm_T1, c_outdir, baseline, cond1, mode='pooled')
 
-        T_norm = pd.concat([tab_norm_T0, tab_norm_T1.iloc[:, 3:(3 + 2*rep)]], axis=1)
-        T_norm.to_csv(os.path.join(c_outdir, 'normalised_counts.csv'), index=False)
-
         # ============================ MODULE 2 ============================
-
         # -------------------- 2.1 --------------------
         # Separate and show controls, NTs, zGE, and normalised counts
         # Distribution of:
@@ -142,7 +137,7 @@ def main():
         # (4) Normalised targeted genes
 
         T_target, T_control, hist, groups, bin = separate_target_control.separate_target_control(
-            st, en, step, T_norm, target_type, control_type, baseline, cond1, name, c_outdir)
+            st, en, step, norm_dat_filtered, target_type, control_type, baseline, cond1, name, c_outdir)
         # -------------------- 2.2 --------------------
         # Choose control, compute Z/MZ/crit‑LR, implement q, adjust controls for Z
         (
