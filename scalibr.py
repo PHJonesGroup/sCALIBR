@@ -111,7 +111,7 @@ def main():
         c_outdir = output_dir / name
         c_outdir.mkdir(parents=True, exist_ok=True)
 
-            # filter dataframe for count
+        # filter dataframe for count
         wanted_prefixes = baseline + cond1          # e.g. ['T0_F','T0_M','T1_F+','T1_M+']
         keep = list(norm_dat.columns[:3]) + [
             c for c in norm_dat.columns[3:]
