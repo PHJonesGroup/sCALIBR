@@ -52,7 +52,7 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name, con
     # 1. Pooled-control histogram & stats
     (binn, hiss_z, perc, crit_LR, bin_pz, med_mad, me_sd, mod, MZ, Z, n_z
     ) = make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond, plot_name, control, output_dir)
-
+    
     # 3. Control p-curve & histogram
     p_cont    = bin_pz[:, 1]
     hiss_cont = hiss_z

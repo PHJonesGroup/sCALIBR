@@ -7,7 +7,7 @@ def collapse_table(T_vert, prefix, exact=None):
     Parameters
     ----------
     T_vert : pandas.DataFrame
-        Table containing lfc values, either as one column (``exact``) or as
+        Table containing lfc values, either as one column or as
         several replicate columns sharing ``prefix``.
     prefix : str
         Column-name prefix identifying the replicate columns (e.g. 'lfc', 'Q').
