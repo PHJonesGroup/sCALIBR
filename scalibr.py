@@ -10,14 +10,13 @@ from importlib.metadata import version, PackageNotFoundError
 
 from modules import count_vertical_names, plot_grna_distribution
 from modules import separate_genes_by_grna_count
-from modules import normalise_prop, plot_gene_variability
+from modules import normalise_prop, plot_gene_variability, plot_pca
 from modules import norm_table_individ, plot_mean_median
 from modules import separate_target_control
 from modules import CTR_stats
 from modules import p_control_target_implement
 from modules import computeZ, make_tables_Z, plot_histograms
 from modules import volcano_gRNA_gene_hits, volcano_gRNA_gene_hits_interactive
-
 
 try:
     __version__ = version("scalibr")
@@ -98,7 +97,8 @@ def main():
     # Normalise (CPM) counts as percentage within a column
     norm_dat = normalise_prop.normalise_prop(ssc, T_vert_f, output_dir) 
     norm_dat.to_csv(os.path.join(output_dir, 'normalised_counts.csv'), index=False)
-    
+    plot_pca.plot_pca(norm_dat, output_dir)
+
     # loops over contrasts
     for contrast in config["contrasts"]:
         name     = contrast["name"]
@@ -162,6 +162,16 @@ def main():
             c_outdir
         )
 
+        summary_path = os.path.join(output_dir, "control_stats_by_contrast.txt")
+        write_header = not os.path.exists(summary_path)
+        with open(summary_path, "a") as fh:
+            if write_header:
+                fh.write("contrast\tbaseline\ttreatment\tcontrol_type\t"
+                         "n_control_gRNA\tmean\tsd\n")
+            fh.write(f"{name}\t{','.join(baseline)}\t{','.join(cond1)}\t"
+                     f"{control_type}\t{len(T_control)}\t"
+                     f"{me_sd[0]:.6f}\t{me_sd[1]:.6f}\n")
+            
         # -------------------- 2.3 --------------------
         # Get recalibrated p/q values for gRNAs
         T_vert_q = p_control_target_implement.p_control_target_implement(T_target, T_control, bin, p_cont)
@@ -172,6 +182,7 @@ def main():
         LFC_t = T_vert_q[lfc_cols].to_numpy(dtype=float)
 
         Z_t, bin, perc_t, perc_zt = computeZ.computeZ(st, en, step, LFC_t, me_sd)
+
         plot_histograms.plot_histograms(
             bin_edges=bin, perc_lfc=perc_t, perc_z=perc_zt, 
             title=f'Distribution of {target_type} gRNAs: {name}',
