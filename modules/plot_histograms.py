@@ -19,13 +19,13 @@ def plot_histograms(bin_edges, perc_lfc, perc_z=None, perc_mz=None,
     perc_mz : numpy.ndarray, optional
         Percentage histogram of the MZ-scored values (bottom panel); skipped if None.
     title : str, optional
-        Figure-level title (suptitle).
+        Figure-level title.
     color : str, optional
         Bar colour (default 'b').
     xlab : str, optional
         X-axis label for the top (raw LFC) panel (default 'LFC').
     save_name : str, optional
-        Filename for the saved figure (within output_dir).
+        Filename for the saved figure.
     output_dir : str, optional
         Directory where the figure is saved.
 
