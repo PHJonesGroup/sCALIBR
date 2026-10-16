@@ -10,7 +10,7 @@ from importlib.metadata import version, PackageNotFoundError
 
 from modules import count_vertical_names, plot_grna_distribution
 from modules import separate_genes_by_grna_count
-from modules import normalise_prop, plot_gene_variability, plot_pca
+from modules import normalise_total, plot_gene_variability, plot_pca
 from modules import norm_table_individ, plot_mean_median
 from modules import separate_target_control
 from modules import CTR_stats
@@ -95,7 +95,7 @@ def main():
 
     # -------------------- 1.3 --------------------
     # Normalise (CPM) counts as percentage within a column
-    norm_dat = normalise_prop.normalise_prop(ssc, T_vert_f, output_dir) 
+    norm_dat = normalise_total.normalise_total(ssc, T_vert_f, output_dir) 
     norm_dat.to_csv(os.path.join(output_dir, 'normalised_counts.csv'), index=False)
     plot_pca.plot_pca(norm_dat, output_dir)
 
