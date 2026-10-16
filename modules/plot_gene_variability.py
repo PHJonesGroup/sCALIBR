@@ -4,6 +4,17 @@ import plotly.graph_objects as go
 import os
 import plotly.io as pio
 import json
+import re
+
+def _sample_group(name):
+    """Strip a trailing _R<N> replicate tag: 'T0_F_R2' -> 'T0_F'."""
+    m = re.search(r"_R\d+", name)
+    return name[:m.start()] if m else name
+
+def _replicate_tag(name):
+    """Extract the trailing _R<N> replicate tag: 'T0_F_R2' -> 'R2'."""
+    m = re.search(r"(R\d+)$", name)
+    return m.group(1) if m else name
 
 def plot_gene_variability(T_norm, output_dir, baseline, cond1,
                           target_type="GOI"):
@@ -34,6 +45,13 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
         baseline = [baseline]
     if isinstance(cond1, str):
         cond1 = [cond1]
+    baseline = [_sample_group(b) for b in baseline]
+    cond1 = [_sample_group(c) for c in cond1]
+
+    baseline_label = "_".join(baseline)
+    cond1_label = "_".join(cond1)
+
+    group_label = {"baseline": baseline_label, "cond1": cond1_label}
 
     gt = T_norm["gene_type"].astype(str).str.strip()
     goi = T_norm[gt == target_type].copy()
@@ -42,19 +60,25 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
 
     id_cols = list(goi.columns[:2]) + ["gene_type"]      # sgRNA_name, gene, gene_type
 
-    # map each count column -> (group, sub_condition)
-    # group is 'baseline'/'cond1' (for the two boxes); sub is the column itself (F/M)
+    # Determine which columns belong to baseline/cond1 based on their
+    # sample group (i.e. column name with any trailing _R<N> stripped off),
+    # rather than requiring the caller to enumerate every replicate column.
+    candidate_cols = [c for c in goi.columns if c not in id_cols]
+
     col_info = {}
-    for c in baseline:
-        if c in goi.columns:
-            col_info[c] = ("baseline", c)
-    for c in cond1:
-        if c in goi.columns:
-            col_info[c] = ("cond1", c)
+    for c in candidate_cols:
+        grp = _sample_group(c)
+        if grp in baseline:
+            col_info[c] = ("baseline", _replicate_tag(c))
+        elif grp in cond1:
+            col_info[c] = ("cond1", _replicate_tag(c))
 
     count_cols = list(col_info.keys())
     if not count_cols:
-        raise ValueError(f"No columns for {baseline} or {cond1}. Cols: {goi.columns.tolist()}")
+        raise ValueError(
+            f"No columns matched group(s) {baseline} or {cond1}. "
+            f"Available columns: {candidate_cols}"
+        )
 
     # long format
     long = goi.melt(id_vars=id_cols, value_vars=count_cols,
@@ -62,11 +86,10 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
     long["CPM"] = pd.to_numeric(long["CPM"], errors="coerce")
     long = long.dropna(subset=["CPM"])
     long["group"] = long["sample"].map(lambda c: col_info[c][0])   # baseline / cond1
-    long["sub"]   = long["sample"].map(lambda c: col_info[c][1])   # the replicates
- 
-    # keep only the top-N most variable genes 
+    long["sub"]   = long["sample"].map(lambda c: col_info[c][1])   # replicate tag, e.g. R1/R2
+
+    # keep only the top-N most variable genes
     top_n = 100
-    # SD within baseline and within cond1 per gene; take the larger of the two
     sd_by_group = (long.groupby(["gene", "group"])["CPM"]
                        .std()
                        .unstack("group"))                      # columns: baseline, cond1
@@ -84,9 +107,11 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
     offset = 0.2
     group_offset = {"baseline": -offset, "cond1": +offset}
     group_colors = {"baseline": "rgba(31,119,180,0.5)", "cond1": "rgba(255,127,14,0.5)"}
-    group_label  = {"baseline": "baseline", "cond1": "cond1"}
+    baseline_label = baseline[0]
+    cond1_label = cond1[0]
+    group_label  = {"baseline": baseline_label, "cond1": cond1_label}
 
-    # one box per group (baseline / cond1), pooling its sub-condition columns
+    # one box per group (baseline / cond1), pooling its replicate columns
     for grp in ("baseline", "cond1"):
         sub = long[long["group"] == grp]
         if sub.empty:
@@ -97,7 +122,7 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
             width=0.35, boxpoints=False, showlegend=True
         ))
 
-    # points coloured by sub-condition (F / M), offset into their group's box
+    # points coloured by replicate tag, consistent across both boxes
     subs = sorted(long["sub"].unique())
     palette = ["#111111", "#e41a1c", "#377eb8", "#4daf4a",
                "#984ea3", "#ff7f00", "#a65628", "#f781bf"]
@@ -112,7 +137,7 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
         fig.add_trace(go.Scattergl(
             x=xpos, y=ss["CPM"], mode="markers",
             marker=dict(color=sub_color[s], size=10, opacity=0.85),
-            name=str(s), text=ss["sgRNA_name"] + " | " + ss["sub"],
+            name=str(s), text=ss["sgRNA_name"] + " | " + ss["sample"],
             hoverinfo="text+y"
         ))
 
@@ -127,7 +152,7 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
         xaxis=dict(tickmode="array",
                    tickvals=list(gene_to_x.values()),
                    ticktext=list(gene_to_x.keys())),
-        legend_title="Condition / Sub-condition",
+        legend_title="Condition / Replicate",
         updatemenus=[dict(
             type="buttons", direction="right",
             x=1.0, y=1.12, xanchor="right",
