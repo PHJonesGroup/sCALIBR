@@ -5,11 +5,8 @@ import os
 import plotly.io as pio
 import json
 import re
+from .sample_group import sample_group
 
-def _sample_group(name):
-    """Strip a trailing _R<N> replicate tag: 'T0_F_R2' -> 'T0_F'."""
-    m = re.search(r"_R\d+", name)
-    return name[:m.start()] if m else name
 
 def _replicate_tag(name):
     """Extract the trailing _R<N> replicate tag: 'T0_F_R2' -> 'R2'."""
@@ -45,8 +42,8 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
         baseline = [baseline]
     if isinstance(cond1, str):
         cond1 = [cond1]
-    baseline = [_sample_group(b) for b in baseline]
-    cond1 = [_sample_group(c) for c in cond1]
+    baseline = [sample_group(b) for b in baseline]
+    cond1 = [sample_group(c) for c in cond1]
 
     baseline_label = "_".join(baseline)
     cond1_label = "_".join(cond1)
@@ -67,7 +64,7 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
 
     col_info = {}
     for c in candidate_cols:
-        grp = _sample_group(c)
+        grp = sample_group(c)
         if grp in baseline:
             col_info[c] = ("baseline", _replicate_tag(c))
         elif grp in cond1:

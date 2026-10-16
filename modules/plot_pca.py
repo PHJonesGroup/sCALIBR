@@ -5,13 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from sklearn.decomposition import PCA
-
-
-def _sample_group(name):
-    """Strip a trailing _R<N> replicate tag: 'T0_F_R2' -> 'T0_F'."""
-    m = re.search(r"_R\d+", name)
-    return name[:m.start()] if m else name
-
+from .sample_group import sample_group
 
 def _label_points(ax, xy, labels, colors, min_sep_frac=0.12):
     """
@@ -86,7 +80,7 @@ def plot_pca(norm_dat, output_dir, log_transform=True):
                          f"Columns: {norm_dat.columns.tolist()}")
 
     # sample -> group (replicate tag stripped); one colour per group
-    groups = [_sample_group(s) for s in count_cols]
+    groups = [sample_group(s) for s in count_cols]
     uniq_groups = sorted(set(groups))
     palette = ["#377EB8", "#E41A1C", "#1D9E75", "#7F77DD",
                "#888780", "#BA7517", "#D4537E", "#D85A30"]
