@@ -13,6 +13,11 @@ def _replicate_tag(name):
     m = re.search(r"(R\d+)$", name)
     return m.group(1) if m else name
 
+def _guide_tag(sgrna_name):
+    """Extract the guide identifier: 'AADAC_sgRNA1' -> 'sgRNA1'."""
+    m = re.search(r"(sgRNA\d+)$", str(sgrna_name), flags=re.IGNORECASE)
+    return m.group(1) if m else str(sgrna_name).rsplit("_", 1)[-1]
+
 def plot_gene_variability(T_norm, output_dir, baseline, cond1,
                           target_type="GOI"):
     """
@@ -58,8 +63,6 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
     id_cols = list(goi.columns[:2]) + ["gene_type"]      # sgRNA_name, gene, gene_type
 
     # Determine which columns belong to baseline/cond1 based on their
-    # sample group (i.e. column name with any trailing _R<N> stripped off),
-    # rather than requiring the caller to enumerate every replicate column.
     candidate_cols = [c for c in goi.columns if c not in id_cols]
 
     col_info = {}
@@ -83,19 +86,32 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
     long["CPM"] = pd.to_numeric(long["CPM"], errors="coerce")
     long = long.dropna(subset=["CPM"])
     long["group"] = long["sample"].map(lambda c: col_info[c][0])   # baseline / cond1
-    long["sub"]   = long["sample"].map(lambda c: col_info[c][1])   # replicate tag, e.g. R1/R2
+    long["sub"]   = long["sgRNA_name"].map(_guide_tag)             # sgRNA1, sgRNA2, ...
 
     # keep only the top-N most variable genes
     top_n = 100
-    sd_by_group = (long.groupby(["gene", "group"])["CPM"]
-                       .std()
-                       .unstack("group"))                      # columns: baseline, cond1
-    gene_variability = sd_by_group.max(axis=1)                 # largest SD across the two groups
-    top_genes = gene_variability.sort_values(ascending=False).head(top_n).index
+
+    # per sample, each gRNA's deviation from its gene's median across guides
+    long["gene_median"] = long.groupby(["gene", "sample"])["CPM"].transform("median")
+    long["dev"] = long["CPM"] - long["gene_median"]
+
+    # per gRNA: mean deviation across samples, and its consistency
+    per_grna = (long.groupby(["gene", "sgRNA_name"])["dev"]
+                    .agg(mean_dev="mean", sd_dev="std", n="count")
+                    .reset_index())
+
+    # consistency score: large mean deviation relative to its variability
+    # (a guide that's reliably off in the same direction scores high)
+    per_grna["consistency"] = (per_grna["mean_dev"].abs()
+                               / (per_grna["sd_dev"].fillna(0) + 1e-9))
+
+    # a gene's score = its single most consistently-deviating guide
+    gene_score = per_grna.groupby("gene")["consistency"].max()
+
+    top_genes = gene_score.sort_values(ascending=False).head(top_n).index
     long = long[long["gene"].isin(top_genes)].copy()
 
-    # order genes by largest SD (most variable first)
-    order = gene_variability.loc[top_genes].sort_values(ascending=False).index.tolist()
+    order = gene_score.loc[top_genes].sort_values(ascending=False).index.tolist()
     gene_to_x = {g: i for i, g in enumerate(order)}
     long["x"] = long["gene"].map(gene_to_x)
 
@@ -149,7 +165,7 @@ def plot_gene_variability(T_norm, output_dir, baseline, cond1,
         xaxis=dict(tickmode="array",
                    tickvals=list(gene_to_x.values()),
                    ticktext=list(gene_to_x.keys())),
-        legend_title="Condition / Replicate",
+        legend_title="Condition / gRNA",
         updatemenus=[dict(
             type="buttons", direction="right",
             x=1.0, y=1.12, xanchor="right",
