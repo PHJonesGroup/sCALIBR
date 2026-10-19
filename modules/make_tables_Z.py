@@ -2,50 +2,52 @@ import pandas as pd
 import numpy as np
 
 def make_tables_Z(target, Z_t, control_type):
-    """
-    Build a per-replicate gRNA table with LFC, control-calibrated Z, and Q,
-    one set of columns per replicate.
+    """Build a per-replicate gRNA table with LFC, control-calibrated Z, and Q.
 
     Parameters
     ----------
-    target : pd.DataFrame 
-        Table of target gRNA with [gRNA, gene, lfc_<r1>, ..., Q_<r1>, ...]
+    target : pandas.DataFrame
+        Target gRNA table [gRNA, gene, gene_type, lfc_<r>, ..., Q_<r>, ...].
     Z_t : numpy.ndarray
-        (n_gRNA x n_reps), per-rep Z-scores aligned to the lfc_* columns (same column order)
+        (n_gRNA, n_reps) per-replicate Z-scores, column order matching the
+        lfc_* columns of ``target``.
     control_type : str
-        gene_type value to calibrate on
+        Control category the Z-scores were calibrated against; used in the
+        Z column names.
 
     Returns
     -------
     T_wt : pandas.DataFrame
-        Table [gRNA, gene, lfc_<r>, Z_,control_type>_<r>, Q_<r>, ...] per replicate
-    
+        [gRNA, gene, gene_type, lfc_<r>, Z_<control_type>_lfc_<r>, Q_<r>, ...],
+        one set of columns per replicate.
+
     Raises
     ------
     ValueError
-        If required lfc columns are missing from ``Z_t``
+        If the number of columns in ``Z_t`` does not match the number of
+        lfc columns in ``target``.
     """
     Z_t = np.asarray(Z_t, dtype=float)
     if Z_t.ndim == 1:
         Z_t = Z_t[:, None]
 
     lfc_cols = [c for c in target.columns if c.startswith('lfc')]
-    q_cols   = [c for c in target.columns if c.startswith('Q')]
 
     if Z_t.shape[1] != len(lfc_cols):
-        raise ValueError(f"Z_t has {Z_t.shape[1]} cols but found {len(lfc_cols)} lfc columns")
+        raise ValueError(f"Z_t has {Z_t.shape[1]} cols but found "
+                         f"{len(lfc_cols)} lfc columns: {lfc_cols}")
 
     T_wt = pd.DataFrame({
-        'gRNA': target.iloc[:, 0].values,
-        'gene': target.iloc[:, 1].values,
+        'gRNA':      target.iloc[:, 0].values,
+        'gene':      target.iloc[:, 1].values,
+        'gene_type': target.iloc[:, 2].values,
     })
 
     for k, lc in enumerate(lfc_cols):
-        # rep_suffix is '' for bare 'lfc', '_60159' for 'lfc_60159'
-        rep_suffix = lc[len('lfc'):]          # includes leading underscore when present
+        rep_suffix = lc[len('lfc'):]          # '' for bare 'lfc', '_F' for 'lfc_F'
 
-        T_wt[f'lfc{rep_suffix}']                       = target[lc].values
-        T_wt[f'Z_{control_type}_lfc{rep_suffix}']      = Z_t[:, k]
+        T_wt[f'lfc{rep_suffix}']                  = target[lc].values
+        T_wt[f'normalised_lfc{rep_suffix}'] = Z_t[:, k]
 
         qc = f'Q{rep_suffix}'
         if qc in target.columns:

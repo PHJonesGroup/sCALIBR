@@ -3,9 +3,14 @@ import matplotlib.pyplot as plt
 from .make_histo_LFC import make_histo_LFC
 
 def computeZ(st, en, step, LFC_t, me_sd_z):
-    """
-    Compute per-replicate Z-scores for targets against the pooled-control null.
-    
+    """Compute per-replicate Z-scores for targets against the control null.
+
+    Accepts either a single pooled null or one null per replicate:
+      - me_sd_z of shape (2,)        -> every replicate is standardised against
+                                        the same pooled-control mean and SD.
+      - me_sd_z of shape (n_rep, 2)  -> column j of LFC_t is standardised against
+                                        row j's mean and SD (per-sample calibration).
+
     Parameters
     ----------
     st, en : float
@@ -14,8 +19,9 @@ def computeZ(st, en, step, LFC_t, me_sd_z):
         Histogram bin width.
     LFC_t : numpy.ndarray
         Target LFCs, shape (n_gRNA, n_reps); a 1-D array is treated as one column.
-    me_sd_z : sequence of float
-        [mean, SD] of the pooled control LFC (used as the standardisation null).
+    me_sd_z : numpy.ndarray
+        [mean, SD] of the pooled control LFC, or an (n_rep, 2) array of
+        [mean, SD] per replicate, ordered to match the columns of LFC_t.
 
     Returns
     -------
@@ -31,21 +37,35 @@ def computeZ(st, en, step, LFC_t, me_sd_z):
     Raises
     ------
     ValueError
-        If the control SD is zero or non-finite (cannot standardise).
+        If a control SD is zero or non-finite, or if a per-replicate me_sd_z
+        has a different number of rows than LFC_t has columns.
     """
     LFC_t = np.asarray(LFC_t, dtype=float)
     if LFC_t.ndim == 1:
-        LFC_t = LFC_t[:, None]                
+        LFC_t = LFC_t[:, None]
 
-    mu, sd = me_sd_z[0], me_sd_z[1]
+    me_sd_z = np.asarray(me_sd_z, dtype=float)
 
-    if sd == 0 or not np.isfinite(sd):
-        raise ValueError("Control SD is zero or invalid — cannot compute Z-scores")
+    if me_sd_z.ndim == 1:                         # pooled: one null for all reps
+        mu, sd = me_sd_z[0], me_sd_z[1]
+        bad = (sd == 0) or (not np.isfinite(sd))
+        if bad:
+            raise ValueError("Control SD is zero or invalid — cannot compute Z-scores")
+    else:                                         # per-replicate nulls
+        if me_sd_z.shape[0] != LFC_t.shape[1]:
+            raise ValueError(
+                f"me_sd_z has {me_sd_z.shape[0]} rows but LFC_t has "
+                f"{LFC_t.shape[1]} replicate columns — they must match in order")
+        mu = me_sd_z[:, 0][None, :]               # (1, n_rep), broadcasts over gRNAs
+        sd = me_sd_z[:, 1][None, :]
+        bad = np.any(sd == 0) | np.any(~np.isfinite(sd))
+        if bad:
+            raise ValueError("A control SD is zero or invalid — cannot compute Z-scores")
 
-    # per-replicate Z: each rep's LFC standardized against the pooled-control null
-    Z_t = (LFC_t - mu) / sd                     # (n_gRNA x n_reps)
+    # each replicate's LFC standardised against its own (or the pooled) null
+    Z_t = (LFC_t - mu) / sd                       # (n_gRNA x n_reps)
 
-    # pooled histograms
+    # pooled histograms for the diagnostic plot
     lfc_flat = LFC_t[np.isfinite(LFC_t)]
     z_flat   = Z_t[np.isfinite(Z_t)]
     binn, _, perc_t  = make_histo_LFC(step, lfc_flat, st, en)

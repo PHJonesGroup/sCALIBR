@@ -63,6 +63,11 @@ def main():
 
     keep_counts = config["keep_counts"]
     alf = config["alf"]
+    norm_method = config["normalisation_method"]
+    valid_methods = {"sample", "pooled"}
+    if norm_method not in valid_methods:
+        sys.exit(f"Config error: normalisation_method must be one of "
+                 f"{sorted(valid_methods)}, got '{norm_method}'")
     target_type = config["target_type"]
     control_type = config["control_type"]
     st = config["st"]
@@ -81,19 +86,16 @@ def main():
     gRNA = T_vert.iloc[:, 0].values  # first column (gRNA names)
     gene = T_vert.iloc[:, 1].values  # second column (gene names)
 
-    # -------------------- 1.1 --------------------
     # Counts how many times each gene name/intergenic name occurs in the raw count file & gives number of gRNA per gene/ intergenic
     gene_names = gene
     ggenes, gg, ind_gn = count_vertical_names.count_vertical_names(gene_names)
     plot_grna_distribution.plot_grna_distribution(gg, output_dir)
 
-    # -------------------- 1.2 --------------------
     # Removes genes with incorrect number of gRNAs
     groups = separate_genes_by_grna_count.separate_genes_by_grna_count(T_vert, ggenes, gene_names, gg, ind_gn)
     ind_keep = sum((groups[c]["ind"] for c in keep_counts if c in groups), [])
     T_vert_f = T_vert.iloc[ind_keep, :].reset_index(drop=True)
 
-    # -------------------- 1.3 --------------------
     # Normalise (CPM) counts as percentage within a column
     norm_dat = normalise_total.normalise_total(ssc, T_vert_f, output_dir) 
     norm_dat.to_csv(os.path.join(output_dir, 'normalised_counts.csv'), index=False)
@@ -121,62 +123,39 @@ def main():
         norm_dat_filtered = norm_dat[keep]
 
         plot_gene_variability.plot_gene_variability(norm_dat_filtered, c_outdir, baseline, cond1, target_type)
-        # -------------------- 1.4 --------------------
+        
         # Format normalised counts, compute mean and median of normalised counts
         tab_norm_T0, tab_norm_T1 = norm_table_individ.norm_table_individ(norm_dat_filtered, baseline, cond1)
         plot_mean_median.plot_mean_median(tab_norm_T0, tab_norm_T1, c_outdir, baseline, cond1, mode='replicate')
         plot_mean_median.plot_mean_median(tab_norm_T0, tab_norm_T1, c_outdir, baseline, cond1, mode='pooled')
 
         # ============================ MODULE 2 ============================
-        # -------------------- 2.1 --------------------
-        # Separate and show controls, NTs, zGE, and normalised counts
-        # Distribution of:
-        # (1) Controls: intergenic genes
-        # (2) NT = non-targeted genes
-        # (3) zGE = zero expressed genes
-        # (4) Normalised targeted genes
-
+        # Separate and show controls, NTs, zGE, and normalised counts distribution
         T_target, T_control, hist, groups, bin = separate_target_control.separate_target_control(
             st, en, step, norm_dat_filtered, target_type, control_type, baseline, cond1, name, c_outdir)
-        # -------------------- 2.2 --------------------
+
         # Choose control, compute Z/MZ/crit‑LR, implement q, adjust controls for Z
-        (
-            crit_LR, 
-            me_sd, 
-            med_mad, 
-            binn, 
-            p_cont, 
-            hiss_cont, 
-            p_targ
-        ) = CTR_stats.CTR_stats(
-            alf,
-            st,
-            en,
-            step,
-            T_control,          
-            hist,         
-            baseline,          
-            cond1,
-            name,          
-            control_type,
-            c_outdir
-        )
+        (crit_LR, me_sd, med_mad, binn, p_cont, hiss_cont, p_targ, ctrl_lfc_cols) = CTR_stats.CTR_stats(
+            alf, st, en, step, T_control, hist, baseline, cond1, name, control_type, norm_method, c_outdir)
+
+        # pooled: me_sd is (2,); sample: (n_rep, 2) -> comma-separated per replicate
+        me_sd_2d = np.atleast_2d(me_sd)
+        mean_str = ",".join(f"{v:.6f}" for v in me_sd_2d[:, 0])
+        sd_str   = ",".join(f"{v:.6f}" for v in me_sd_2d[:, 1])
 
         summary_path = os.path.join(output_dir, "control_stats_by_contrast.txt")
         write_header = not os.path.exists(summary_path)
         with open(summary_path, "a") as fh:
             if write_header:
                 fh.write("contrast\tbaseline\ttreatment\tcontrol_type\t"
-                         "n_control_gRNA\tmean\tsd\n")
+                        "n_control_gRNA\tmean\tsd\n")
             fh.write(f"{name}\t{','.join(baseline)}\t{','.join(cond1)}\t"
-                     f"{control_type}\t{len(T_control)}\t"
-                     f"{me_sd[0]:.6f}\t{me_sd[1]:.6f}\n")
+                    f"{control_type}\t{len(T_control)}\t"
+                    f"{mean_str}\t{sd_str}\n")
             
-        # -------------------- 2.3 --------------------
         # Get recalibrated p/q values for gRNAs
         T_vert_q = p_control_target_implement.p_control_target_implement(T_target, T_control, bin, p_cont)
 
-        # -------------------- 2.4 --------------------
         # Compute Z LFC for targets only
         lfc_cols = [c for c in T_vert_q.columns if c.startswith('lfc')]
         LFC_t = T_vert_q[lfc_cols].to_numpy(dtype=float)
@@ -195,15 +174,18 @@ def main():
 
         # -------------------- 2.5 --------------------
         # Find extreme sets (enriched/ depleted) and volcano for gRNA and gene
-        thr_lfch = crit_LR[1]     # right-tail critical LFC (enrichment)
-        thr_lfcd = crit_LR[0]     # left-tail critical LFC (depletion)
+        # pooled: crit_LR is [left, right]; sample: (n_rep, 2) -> median across
+        # replicates, matching the per-gRNA median LFC plotted in the volcano
+        crit_med = np.median(np.atleast_2d(crit_LR), axis=0)
+        thr_lfch = crit_med[1]    # right-tail critical LFC (enrichment)
+        thr_lfcd = crit_med[0]    # left-tail critical LFC (depletion)
         thrLFC_d_h = [thr_lfcd, thr_lfch]
 
         T_gRNA, T_gene = volcano_gRNA_gene_hits.volcano_gRNA_gene_hits(
-            alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, name, control_type, c_outdir)
+            alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, name, control_type, c_outdir, norm_method)
 
         volcano_gRNA_gene_hits_interactive.volcano_gRNA_gene_hits_interactive(
-            alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, name, control_type, c_outdir)
+            alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, name, control_type, c_outdir, norm_method)
 
         T_gRNA.to_csv(os.path.join(c_outdir, f"volcano_{name}_grna.csv"), index=False)
         T_gene.to_csv(os.path.join(c_outdir, f"volcano_{name}_gene.csv"), index=False)

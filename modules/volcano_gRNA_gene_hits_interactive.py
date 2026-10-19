@@ -4,121 +4,110 @@ import numpy as np
 import pandas as pd
 from plotly.subplots import make_subplots
 from .general_volcano_interactive import general_volcano_interactive
-from .perGene_hits_med_horiz import perGene_hits_med_horiz
+from .perGene_med_horiz import perGene_med_horiz
 from .collapse_table import collapse_table
 
-def volcano_gRNA_gene_hits_interactive(
-    alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, plot_name, control_type, output_dir
-):
-    """
-    Draw an interactive 2x2 grid of volcano plots and return hit/depleted indices.
 
-    Panels: per-gRNA LFC, per-gRNA Z (top row); per-gene LFC, per-gene Z (bottom
-    row).
+def volcano_gRNA_gene_hits_interactive(
+    alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz,
+    T_vert, plot_name, control_type, output_dir, norm_method="pooled"
+):
+    """Draw an interactive 2x2 grid of volcano plots and write it as HTML.
+
+    Panels: per-gRNA LFC, per-gRNA Z (top row); per-gene LFC, per-gene Z
+    (bottom row). Replicate columns are collapsed to a per-gRNA median before
+    plotting; per-gene values come from perGene_med_horiz.
 
     Parameters
     ----------
     alf : float
-        Significance level for hit calling.
+        FDR significance threshold for hit calling.
     sfdr_corr : float
         Pseudocount added to FDR before -log10 (avoids log10(0) on the y-axis).
     thr_lfch, thr_lfcd : float
-        Right / left critical LFC thresholds (enrichment / depletion), raw LFC scale.
+        Right / left critical thresholds on the raw LFC scale.
     thr_lfchz, thr_lfcdz : float
         Right / left critical thresholds on the Z-corrected scale.
     T_vert : pandas.DataFrame
-        Per-gRNA table: [gRNA, gene, lfc(_<rep>)..., Z_<control_type>_lfc(_<rep>)...,
-        Q(_<rep>)...].
+        Per-gRNA table: [gRNA, gene, gene_type, lfc(_<rep>)...,
+        normalised_lfc(_<rep>)..., Q(_<rep>)...].
     plot_name : str
-        Condition labels, used in titles and the output filename.
+        Contrast name, used in the title and output filename.
     control_type : str
-        Control category used for the Z columns (e.g. 'Zero-expressed gene'),
-        needed to locate the 'Z_<control_type>_lfc' columns.
+        Control category the Z columns were calibrated against.
     output_dir : str
-        Directory where the figure is saved.
+        Directory where the HTML figure is saved.
+    norm_method : {'pooled', 'sample'}, optional
+        Gene-level aggregation mode, passed to perGene_med_horiz.
 
     Returns
     -------
     None
     """
     grnas = T_vert['gRNA']
-    genes  = T_vert['gene']
-    # collapse reps to median per gRNA (or use the single column if no reps)
-    scoreL = collapse_table(T_vert, prefix="lfc",                     exact="lfc")
-    scoreZ = collapse_table(T_vert, prefix=f"Z_{control_type}_lfc",   exact=f"Z_{control_type}_lfc")
-    fdr    = collapse_table(T_vert, prefix="Q",                       exact="Q")
+    genes = T_vert['gene']
 
+    scoreL = collapse_table(T_vert, prefix="lfc",            exact="lfc")
+    scoreZ = collapse_table(T_vert, prefix="normalised_lfc", exact="normalised_lfc")
+    fdr    = collapse_table(T_vert, prefix="Q",              exact="Q")
 
-    # 2x2 grid: row1 = per gRNA (LFC, Z), row2 = per gene (LFC, Z)
     fig = make_subplots(rows=2, cols=2, subplot_titles=(
-        f"Volcano per gRNA",
-        f"Volcano per gRNA",
-        f"Volcano per gene",
-        f"Volcano per gene",
+        "Volcano per gRNA (LFC)",
+        "Volcano per gRNA (Z)",
+        "Volcano per gene (LFC)",
+        "Volcano per gene (Z)",
     ))
 
-    # helper to add the three trace layers (all / hits / depleted)
     def add_volcano(T_all, T_hs, T_ds, row, col, label, show_legend):
-        fig.add_trace(go.Scatter(
+        fig.add_trace(go.Scattergl(
             x=T_all["score"], y=T_all["LPV"], mode="markers",
             marker=dict(color="lightgray", size=6),
             text=T_all[label], name="", hoverinfo="text+x+y", showlegend=False
         ), row=row, col=col)
         if not T_hs.empty:
-            fig.add_trace(go.Scatter(
+            fig.add_trace(go.Scattergl(
                 x=T_hs["score"], y=T_hs["LPV"], mode="markers",
                 marker=dict(color="red", size=7),
                 text=T_hs[label], name="Hits", hoverinfo="text+x+y",
                 showlegend=show_legend
             ), row=row, col=col)
         if not T_ds.empty:
-            fig.add_trace(go.Scatter(
+            fig.add_trace(go.Scattergl(
                 x=T_ds["score"], y=T_ds["LPV"], mode="markers",
                 marker=dict(color="blue", size=7),
                 text=T_ds[label], name="Depleted", hoverinfo="text+x+y",
                 showlegend=show_legend
             ), row=row, col=col)
 
-    # --- Row 1, Col 1: per-gRNA LFC ---
+    # --- Row 1: per gRNA ---
     _, _, _, T_dsL, T_hsL, T_gRNA_L = general_volcano_interactive(
-        alf, sfdr_corr, thr_lfch, thr_lfcd, scoreL, fdr, genes, grnas
-    )
-    add_volcano(T_gRNA_L, T_hsL, T_dsL, row=1, col=1, label="gRNA", show_legend=True)  # legend from here only
+        alf, sfdr_corr, thr_lfch, thr_lfcd, scoreL, fdr, genes, grnas)
+    add_volcano(T_gRNA_L, T_hsL, T_dsL, row=1, col=1, label="gRNA", show_legend=True)
 
-    # --- Row 1, Col 2: per-gRNA Z ---
-    LPV, indha, indda, T_ds, T_hs, T_gRNA = general_volcano_interactive(
-        alf, sfdr_corr, thr_lfchz, thr_lfcdz, scoreZ, fdr, genes, grnas
-    )
+    _, _, _, T_ds, T_hs, T_gRNA = general_volcano_interactive(
+        alf, sfdr_corr, thr_lfchz, thr_lfcdz, scoreZ, fdr, genes, grnas)
     add_volcano(T_gRNA, T_hs, T_ds, row=1, col=2, label="gRNA", show_legend=False)
 
-    # --- Per-gene stats ---
-    (
-        T_lfc_z_q_med, T_lfc_z_q_me, T_LFC, T_Q, T_Z
-    ) = perGene_hits_med_horiz(
-        alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_vert, control_type
-    )
+    # --- per-gene aggregation ---
+    (T_lfc_z_q_med, T_lfc_z_q_me,
+     T_LFC, T_Q, T_Z) = perGene_med_horiz(T_vert, control_type, norm_method)
 
     if not T_lfc_z_q_med.empty:
-        fdr_gene   = T_lfc_z_q_med.iloc[:, 3].values
-        genes_gene = T_lfc_z_q_med.iloc[:, 0].values
+        genes_gene = T_lfc_z_q_med['genes'].values
+        fdr_gene   = T_lfc_z_q_med['median_q'].values
 
-        # --- Row 2, Col 1: per-gene LFC ---
         _, _, _, T_ds2, T_hs2, T_gene2 = general_volcano_interactive(
             alf, sfdr_corr, thr_lfch, thr_lfcd,
-            T_lfc_z_q_med.iloc[:, 1].values, fdr_gene, genes_gene
-        )
+            T_lfc_z_q_med['median_LFC'].values, fdr_gene, genes_gene)
         add_volcano(T_gene2, T_hs2, T_ds2, row=2, col=1, label="gene", show_legend=False)
 
-        # --- Row 2, Col 2: per-gene Z ---
         _, _, _, T_ds3, T_hs3, T_gene3 = general_volcano_interactive(
             alf, sfdr_corr, thr_lfchz, thr_lfcdz,
-            T_lfc_z_q_med.iloc[:, 2].values, fdr_gene, genes_gene
-        )
+            T_lfc_z_q_med['median_normalised_LFC'].values, fdr_gene, genes_gene)
         add_volcano(T_gene3, T_hs3, T_ds3, row=2, col=2, label="gene", show_legend=False)
     else:
         print("No per-gene data available, skipping gene volcano plots")
 
-    # axis titles
     fig.update_xaxes(title_text="LFC", row=1, col=1)
     fig.update_xaxes(title_text="Z-corrected LFC", row=1, col=2)
     fig.update_xaxes(title_text="LFC", row=2, col=1)
@@ -128,6 +117,6 @@ def volcano_gRNA_gene_hits_interactive(
             fig.update_yaxes(title_text="-log10(FDR)", row=r, col=c)
 
     fig.update_layout(title=f"{plot_name}", showlegend=True)
-    fig.write_html(os.path.join(output_dir, f"volcano_plot_interactive_{plot_name}.html"))
-
-    return 1
+    fig.write_html(
+        os.path.join(output_dir, f"volcano_plot_interactive_{plot_name}.html"),
+        include_plotlyjs="cdn")

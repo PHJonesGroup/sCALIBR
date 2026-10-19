@@ -27,14 +27,21 @@ def implement_p_control_indiv_gRNA(T_gRNA_LFC, binn, p_cont):
         'gene_type': T_gRNA_LFC.iloc[:, 2].values,
     })
 
-    for col in lfc_cols:
-        suffix = col[len('lfc'):]                
+    # pooled: one curve shared by all reps; sample: (n_bins, n_rep), one per rep
+    p_cont = np.asarray(p_cont, dtype=float)
+    if p_cont.ndim == 2 and p_cont.shape[1] != len(lfc_cols):
+        raise ValueError(f"p_cont has {p_cont.shape[1]} columns but there are "
+                         f"{len(lfc_cols)} lfc columns: {lfc_cols}")
+
+    for j, col in enumerate(lfc_cols):
+        suffix = col[len('lfc'):]
         LFC = T_gRNA_LFC[col].astype(float).to_numpy()
+        p_col = p_cont[:, j] if p_cont.ndim == 2 else p_cont
 
         qq = np.full(len(LFC), np.nan)
         for i in range(len(binn) - 1):
             idx = (LFC > binn[i]) & (LFC <= binn[i + 1])
-            qq[idx] = p_cont[i]
+            qq[idx] = p_col[i]
 
         out[f'lfc{suffix}'] = LFC
         out[f'Q{suffix}']   = qq

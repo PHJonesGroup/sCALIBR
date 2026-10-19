@@ -4,10 +4,13 @@ import os
 import pandas as pd
 
 def plot_histograms(bin_edges, perc_lfc, perc_z=None, perc_mz=None,
-                       title='', color='b', xlab='LFC', save_name ='', output_dir=''):
-    """
-    Plot up to three stacked histogram panels: raw LFC, Z-LFC, and MZ-LFC.
-    
+                    title='', color='b', xlab='LFC', save_name='', output_dir=''):
+    """Plot stacked histogram panels: raw LFC, Z-LFC, and MZ-LFC.
+
+    Panels are drawn only for the arrays that are provided, so the figure has
+    one, two, or three rows depending on which of perc_z / perc_mz are given.
+    The plotted values are also written to a CSV alongside the figure.
+
     Parameters
     ----------
     bin_edges : numpy.ndarray
@@ -15,9 +18,9 @@ def plot_histograms(bin_edges, perc_lfc, perc_z=None, perc_mz=None,
     perc_lfc : numpy.ndarray
         Percentage histogram of the raw LFC values (top panel).
     perc_z : numpy.ndarray, optional
-        Percentage histogram of the Z-scored values (middle panel); skipped if None.
+        Percentage histogram of the Z-scored values; panel skipped if None.
     perc_mz : numpy.ndarray, optional
-        Percentage histogram of the MZ-scored values (bottom panel); skipped if None.
+        Percentage histogram of the MZ-scored values; panel skipped if None.
     title : str, optional
         Figure-level title.
     color : str, optional
@@ -25,48 +28,48 @@ def plot_histograms(bin_edges, perc_lfc, perc_z=None, perc_mz=None,
     xlab : str, optional
         X-axis label for the top (raw LFC) panel (default 'LFC').
     save_name : str, optional
-        Filename for the saved figure.
+        Base filename (without extension) for the saved figure and CSV.
     output_dir : str, optional
-        Directory where the figure is saved.
+        Directory where the figure and CSV are saved.
 
     Returns
     -------
     None
     """
-    if perc_mz is not None:
-        lfc_table = pd.DataFrame({
-        "bin" : np.round(bin_edges, 1),
-        "LFC": np.round(perc_lfc,1),
-        "Z_LFC": np.round(perc_z,1),
-        "Median_Z_LFC": np.round(perc_mz,1),})
-    else:
-        lfc_table = pd.DataFrame({
-        "bin" : np.round(bin_edges, 1),
-        "LFC": np.round(perc_lfc,1),
-        "Z_LFC": np.round(perc_z,1)})
-                
-    lfc_table.to_csv(
-        os.path.join(output_dir, f"{save_name}_data.csv"), index=False)
-    
-    plt.figure()
-    plt.suptitle(title, fontsize=14)
-    plt.subplot(3, 1, 1)
-    plt.bar(bin_edges, perc_lfc, width=np.diff(bin_edges)[0], color=color)
-    plt.grid(True)
-    plt.xlabel(xlab)
+    bin_edges = np.asarray(bin_edges, dtype=float)
+    n_bins = len(perc_lfc)
 
+    # --- CSV of the plotted values: only columns that exist ---
+    data = {"bin": np.round(bin_edges[:n_bins], 2),
+            "LFC": np.round(np.asarray(perc_lfc, dtype=float), 3)}
     if perc_z is not None:
-        plt.subplot(3, 1, 2)
-        plt.bar(bin_edges, perc_z, width=np.diff(bin_edges)[0], color=color)
-        plt.grid(True)
-        plt.xlabel('Z LFC')
-
+        data["Z_LFC"] = np.round(np.asarray(perc_z, dtype=float), 3)
     if perc_mz is not None:
-        plt.subplot(3, 1, 3)
-        plt.bar(bin_edges, perc_mz, width=np.diff(bin_edges)[0], color=color)
-        plt.grid(True)
-        plt.xlabel('MZ LFC')
+        data["MZ_LFC"] = np.round(np.asarray(perc_mz, dtype=float), 3)
 
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, save_name), dpi=300, bbox_inches="tight")
+    base = os.path.splitext(save_name)[0]
+    pd.DataFrame(data).to_csv(
+        os.path.join(output_dir, f"{base}_data.csv"), index=False)
+
+    # --- figure: one row per panel actually supplied ---
+    panels = [(perc_lfc, xlab)]
+    if perc_z is not None:
+        panels.append((perc_z, 'Z-corrected LFC'))
+    if perc_mz is not None:
+        panels.append((perc_mz, 'MZ-corrected LFC'))
+
+    width = np.diff(bin_edges)[0] if len(bin_edges) > 1 else 0.05
+
+    fig, axs = plt.subplots(len(panels), 1, figsize=(8, 2.6 * len(panels)),
+                            squeeze=False)
+    fig.suptitle(title, fontsize=14)
+
+    for ax, (vals, lab) in zip(axs[:, 0], panels):
+        ax.bar(bin_edges[:n_bins], vals, width=width, color=color)
+        ax.grid(True)
+        ax.set_xlabel(lab)
+        ax.set_ylabel('%')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
+    plt.savefig(os.path.join(output_dir, f"{base}.pdf"), bbox_inches="tight")
     plt.close()

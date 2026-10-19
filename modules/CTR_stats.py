@@ -8,9 +8,16 @@ import matplotlib as mpl
 mpl.rcParams['pdf.fonttype'] = 42
 mpl.rcParams['ps.fonttype'] = 42
 
-def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name, control, output_dir):
-    """
-    Calibrate a control null and score targets against it.
+def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name,
+              control, norm_method, output_dir):
+    """Calibrate a control null and score targets against it.
+
+    Two calibration modes:
+      'pooled' — all control LFC values across replicates are pooled into one
+                 distribution, giving a single null (one p-curve, one mean/SD,
+                 one pair of critical thresholds) shared by every replicate.
+      'sample' — each replicate column is calibrated against its own control
+                 LFC distribution, giving a separate null per replicate.
 
     Parameters
     ----------
@@ -21,60 +28,101 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name, con
     step : float
         Histogram bin width.
     T_control : pandas.DataFrame
-        Control table: [gRNA, gene, lfc_<rep>, ...] (per-replicate LFC columns).
+        Control table: [gRNA, gene, gene_type, lfc_<rep>, ...].
     hist : numpy.ndarray
-        Target histogram; 1-D counts, or 2-D (n_bins x n_reps) which is pooled
-        (summed across reps) internally.
+        Target histogram; 1-D counts, or 2-D (n_bins x n_reps).
     baseline, cond : str
         Condition labels.
+    plot_name : str
+        Contrast name, used in titles and filenames.
     control : str
-        Control category label (e.g. 'Zero-expressed gene'), used in labels.
+        Control category label (e.g. 'Zero-expressed gene').
+    norm_method : {'pooled', 'sample'}
+        Whether to build one null from all replicates, or one null per replicate.
     output_dir : str
-        Directory where the target-vs-control p-curve plot is saved.
+        Directory where plots and tables are saved.
 
     Returns
     -------
     crit_LR : numpy.ndarray
-        [left, right] critical LFC thresholds, from the pooled control.
+        'pooled': [left, right]. 'sample': (n_rep, 2), one row per replicate.
     me_sd : numpy.ndarray
-        [mean, SD] of the pooled control LFC.
+        'pooled': [mean, SD]. 'sample': (n_rep, 2), one row per replicate.
     med_mad : numpy.ndarray
-        [median, MAD] of the pooled control LFC.
+        'pooled': [median, MAD]. 'sample': (n_rep, 2).
     binn : numpy.ndarray
-        Histogram bin edges.
+        Histogram bin edges (shared across modes and replicates).
     p_cont : numpy.ndarray
-        Control p-curve (per-bin probability).
+        'pooled': (n_bins,). 'sample': (n_bins, n_rep), one column per replicate.
     hiss_cont : numpy.ndarray
-        Control histogram counts.
+        Control histogram counts, same convention as p_cont.
     p_targ : numpy.ndarray
         Target p-curve (per-bin probability).
+    lfc_cols : list of str
+        The replicate LFC column names, in the order used for the per-replicate
+        axis of the arrays above (empty-meaning for 'pooled', but returned for
+        reference).
     """
-    # 1. Pooled-control histogram & stats
-    (binn, hiss_z, perc, crit_LR, bin_pz, med_mad, me_sd, mod, MZ, Z, n_z
-    ) = make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond, plot_name, control, output_dir)
-    
-    # 3. Control p-curve & histogram
-    p_cont    = bin_pz[:, 1]
-    hiss_cont = hiss_z
+    lfc_cols = [c for c in T_control.columns if c.startswith('lfc')]
+    if not lfc_cols:
+        raise ValueError(f"No lfc columns in control table: "
+                         f"{T_control.columns.tolist()}")
 
-    # 4. Target p-curve 
+    if norm_method == "pooled":
+        (binn, hiss_z, perc, crit_LR, bin_pz, med_mad, me_sd, mod, MZ, Z, n_z
+         ) = make_histo_crit_stats(alf, st, en, step, T_control,
+                                   baseline, cond, plot_name, control, output_dir)
+        p_cont = bin_pz[:, 1]
+        hiss_cont = hiss_z
+
+    elif norm_method == "sample":
+        p_list, hiss_list, crit_list, mesd_list, medmad_list = [], [], [], [], []
+        binn = None
+        for col in lfc_cols:
+            sub = T_control[list(T_control.columns[:3]) + [col]]
+            (binn, hiss_z, perc, crit_c, bin_pz, med_mad_c, me_sd_c,
+             mod, MZ, Z, n_z) = make_histo_crit_stats(
+                alf, st, en, step, sub, baseline, cond,
+                f"{plot_name}_{col}", control, output_dir)
+            p_list.append(bin_pz[:, 1])
+            hiss_list.append(hiss_z)
+            crit_list.append(crit_c)
+            mesd_list.append(me_sd_c)
+            medmad_list.append(med_mad_c)
+
+        p_cont    = np.column_stack(p_list)       # (n_bins, n_rep)
+        hiss_cont = np.column_stack(hiss_list)
+        crit_LR   = np.vstack(crit_list)          # (n_rep, 2)
+        me_sd     = np.vstack(mesd_list)
+        med_mad   = np.vstack(medmad_list)
+
+    else:
+        raise ValueError(f"norm_method must be 'pooled' or 'sample', got '{norm_method}'")
+
+    # target p-curve (pooled across reps either way — one target distribution)
     hist = np.asarray(hist)
     if hist.ndim == 2:
         hist = hist.sum(axis=1)
     p_targ, cL, cR, bin_pi, med_LFCp, his4p = q_val_frequentist_critical(alf, binn, hist)
 
-    p_table = pd.DataFrame({
-        "bin" : np.round(binn,1),
-        f"control_{control}": np.round(p_cont,1),
-        f"target": np.round(p_targ,1)})
-    p_table.to_csv(
+    # save the p-curves
+    cols = {"bin": np.round(binn, 2), "target": np.round(p_targ, 4)}
+    if norm_method == "pooled":
+        cols[f"control_{control}"] = np.round(p_cont, 4)
+    else:
+        for j, col in enumerate(lfc_cols):
+            cols[f"control_{control}_{col}"] = np.round(p_cont[:, j], 4)
+    pd.DataFrame(cols).to_csv(
         os.path.join(output_dir, f"p_distri_targ_cont_{plot_name}_data.csv"), index=False)
 
-    # 5. Plot: target vs. control p-curves
     plt.figure()
-    plt.plot(binn, p_cont, color="0.5", linestyle="--", label=f"control ({control})")
-    plt.plot(binn, p_targ, color="C3", linestyle="-",  label="target")
-    plt.title(f"Target vs. {control} gRNAs ({plot_name})")
+    if norm_method == "pooled":
+        plt.plot(binn, p_cont, color="0.5", linestyle="--", label=f"control ({control})")
+    else:
+        for j, col in enumerate(lfc_cols):
+            plt.plot(binn, p_cont[:, j], linestyle="--", label=f"control {col}")
+    plt.plot(binn, p_targ, color="C3", linestyle="-", label="target")
+    plt.title(f"Target vs. {control} gRNAs ({plot_name}, {norm_method})")
     plt.xlabel("LFC bin")
     plt.ylabel("Probability")
     plt.legend()
@@ -83,4 +131,4 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name, con
                 bbox_inches="tight")
     plt.close()
 
-    return crit_LR, me_sd, med_mad, binn, p_cont, hiss_cont, p_targ
+    return crit_LR, me_sd, med_mad, binn, p_cont, hiss_cont, p_targ, lfc_cols
