@@ -154,6 +154,11 @@ def main():
         # Get recalibrated p/q values for gRNAs
         T_vert_q = p_control_target_implement.p_control_target_implement(T_target, T_control, bin, p_cont)
 
+        # keep targets only: controls were needed to calibrate Q / Z, not for
+        # the target histogram, target table or volcano plots
+        is_target = T_vert_q['gene_type'].astype(str).str.strip() == target_type
+        T_vert_q = T_vert_q[is_target].reset_index(drop=True)
+
         # Compute Z LFC for targets only
         lfc_cols = [c for c in T_vert_q.columns if c.startswith('lfc')]
         LFC_t = T_vert_q[lfc_cols].to_numpy(dtype=float)

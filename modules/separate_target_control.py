@@ -80,8 +80,6 @@ def separate_target_control(step, T_norm_indiv,
         raise ValueError(f"No finite LFC values for contrast '{plot_name}'")
     st = float(np.round((np.floor(all_lfc.min() / step) - 1) * step, 10))
     en = float(np.round((np.ceil(all_lfc.max() / step) + 1) * step, 10))
-    print(f"[{plot_name}] LFC range {all_lfc.min():.3f} to {all_lfc.max():.3f} "
-          f"-> histogram range [{st}, {en}]")
 
     # pooled histogram per category on the shared bins
     groups = {}
