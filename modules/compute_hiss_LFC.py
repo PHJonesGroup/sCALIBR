@@ -37,12 +37,6 @@ def compute_hiss_LFC(chr_lfc, st, en, step):
 
     LFC = chr_lfc[lfc_cols].astype(float).values 
 
-    finite = LFC[np.isfinite(LFC)]
-    if finite.size:
-        st1, en1 = finite.min() - 1, finite.max() + 1
-    else:
-        st1, en1 = st, en
-
     # histogram each LFC column on the same fixed bins
     hiss_list, perc_list = [], []
     binn = None

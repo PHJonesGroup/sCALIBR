@@ -5,17 +5,20 @@ from .lfc_table import lfc_table
 import numpy as np
 import pandas as pd
 
-def separate_target_control(st, en, step, T_norm_indiv,
+def separate_target_control(step, T_norm_indiv,
                             target_type, control_type,
                             baseline, cond1, plot_name, output_dir,
                             gene_type_column="gene_type"):
     """
     Split gRNAs by the gene_type column, compute per-rep LFC distributions per category, and plot them.
 
+    The histogram range is set from the raw LFCs themselves: it spans the
+    smallest to the largest finite LFC across all categories and replicates,
+    aligned to ``step`` with one bin of margin on each side, so that every
+    gRNA falls inside a bin and later receives a Q value.
+
     Parameters
     ----------
-    st, en : float
-        Lower / upper bounds of the histogram (LFC) range.
     step : float
         Histogram bin width.
     T_norm_indiv : pandas.DataFrame
@@ -45,6 +48,9 @@ def separate_target_control(st, en, step, T_norm_indiv,
         for every category present in the data.
     binn : numpy.ndarray
         Histogram bin edges (shared across all categories)
+    st, en : float
+        Lower / upper bounds of the histogram (LFC) range, derived from the data;
+        pass these on so every later histogram uses the same bins.
     """
     if gene_type_column not in T_norm_indiv.columns:
         raise KeyError(f"'{gene_type_column}' not found. Columns: {T_norm_indiv.columns.tolist()}")
@@ -61,14 +67,26 @@ def separate_target_control(st, en, step, T_norm_indiv,
         print(f"[warning] control_type '{control_type}' not found in data "
               f"(available: {categories}). No control group built for it.")
 
-    # one per-rep LFC table + pooled histogram per discovered category
+    # one per-rep LFC table per discovered category
+    tables = {cat: lfc_table(T_norm_indiv[gt == cat], baseline, cond1)
+              for cat in categories}
+
+    # histogram range from the raw LFCs: min..max over all categories and reps,
+    # aligned to step, plus one bin of margin so no gRNA falls on/over an edge
+    all_lfc = np.concatenate([t.iloc[:, 3:].to_numpy(dtype=float).ravel()
+                              for t in tables.values()])
+    all_lfc = all_lfc[np.isfinite(all_lfc)]
+    if all_lfc.size == 0:
+        raise ValueError(f"No finite LFC values for contrast '{plot_name}'")
+    st = float(np.round((np.floor(all_lfc.min() / step) - 1) * step, 10))
+    en = float(np.round((np.ceil(all_lfc.max() / step) + 1) * step, 10))
+    print(f"[{plot_name}] LFC range {all_lfc.min():.3f} to {all_lfc.max():.3f} "
+          f"-> histogram range [{st}, {en}]")
+
+    # pooled histogram per category on the shared bins
     groups = {}
     binn = None
-
-    for cat in categories:
-        rows = T_norm_indiv[gt == cat]
-        tab = lfc_table(rows, baseline, cond1)
-        # pooled histogram: flatten all rep LFC columns into one distribution
+    for cat, tab in tables.items():
         binn, hiss, perc = compute_hiss_LFC(tab, st, en, step)
         pooled_perc = np.nanmean(perc, axis=1) if perc.ndim == 2 else perc
         groups[cat] = {'table': tab, 'perc': pooled_perc, 'hiss' : hiss}
@@ -87,4 +105,4 @@ def separate_target_control(st, en, step, T_norm_indiv,
         output_dir=output_dir,
     )
 
-    return T_target, T_control, hist, groups, binn
+    return T_target, T_control, hist, groups, binn, st, en

@@ -14,7 +14,8 @@ def computeZ(st, en, step, LFC_t, me_sd_z):
     Parameters
     ----------
     st, en : float
-        Lower / upper bounds of the histogram (LFC) range.
+        Lower / upper bounds of the histogram (LFC) range; widened if needed
+        so the Z-scored values also fit.
     step : float
         Histogram bin width.
     LFC_t : numpy.ndarray
@@ -65,9 +66,13 @@ def computeZ(st, en, step, LFC_t, me_sd_z):
     # each replicate's LFC standardised against its own (or the pooled) null
     Z_t = (LFC_t - mu) / sd                       # (n_gRNA x n_reps)
 
-    # pooled histograms for the diagnostic plot
+    # pooled histograms for the diagnostic plot; widen [st, en] so the
+    # normalised LFCs (which can exceed the raw LFC range) are all shown
     lfc_flat = LFC_t[np.isfinite(LFC_t)]
     z_flat   = Z_t[np.isfinite(Z_t)]
+    if z_flat.size:
+        st = min(st, float(np.round((np.floor(z_flat.min() / step) - 1) * step, 10)))
+        en = max(en, float(np.round((np.ceil(z_flat.max() / step) + 1) * step, 10)))
     binn, _, perc_t  = make_histo_LFC(step, lfc_flat, st, en)
     _,    _, perc_zt = make_histo_LFC(step, z_flat,   st, en)
 

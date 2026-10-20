@@ -70,9 +70,7 @@ def main():
                  f"{sorted(valid_methods)}, got '{norm_method}'")
     target_type = config["target_type"]
     control_type = config["control_type"]
-    st = config["st"]
-    en = config["en"]
-    step = config["step"]
+    step = config["step"]       # histogram range (st, en) is set per contrast from the LFCs
     thr_lfchz = config["thr_lfchz"]
     thr_lfcdz = -thr_lfchz
 
@@ -131,8 +129,8 @@ def main():
 
         # ============================ MODULE 2 ============================
         # Separate and show controls, NTs, zGE, and normalised counts distribution
-        T_target, T_control, hist, groups, bin = separate_target_control.separate_target_control(
-            st, en, step, norm_dat_filtered, target_type, control_type, baseline, cond1, name, c_outdir)
+        T_target, T_control, hist, groups, bin, st, en = separate_target_control.separate_target_control(
+            step, norm_dat_filtered, target_type, control_type, baseline, cond1, name, c_outdir)
 
         # Choose control, compute Z/MZ/crit‑LR, implement q, adjust controls for Z
         (crit_LR, me_sd, med_mad, binn, p_cont, hiss_cont, p_targ, ctrl_lfc_cols) = CTR_stats.CTR_stats(
@@ -147,10 +145,10 @@ def main():
         write_header = not os.path.exists(summary_path)
         with open(summary_path, "a") as fh:
             if write_header:
-                fh.write("contrast\tbaseline\ttreatment\tcontrol_type\t"
+                fh.write("contrast\tbaseline\ttreatment\tcontrol_type\tnorm_method\t"
                         "n_control_gRNA\tmean\tsd\n")
             fh.write(f"{name}\t{','.join(baseline)}\t{','.join(cond1)}\t"
-                    f"{control_type}\t{len(T_control)}\t"
+                    f"{control_type}\t{norm_method}\t{len(T_control)}\t"
                     f"{mean_str}\t{sd_str}\n")
             
         # Get recalibrated p/q values for gRNAs

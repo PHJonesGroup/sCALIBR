@@ -44,10 +44,11 @@ def volcano_gRNA_gene_hits(alf, sfdr_corr, thr_lfchz, thr_lfcdz,
     Returns
     -------
     T_gRNA : pandas.DataFrame
-        Per-gRNA volcano table [gRNA, gene, score, fdr_corr] from the Z panel.
+        Per-gRNA table [gRNA, gene, normalised_lfc, q]: replicate-median
+        normalised LFC and q-value.
     T_gene : pandas.DataFrame
-        Per-gene volcano table [gene, score, fdr_corr] from the Z panel;
-        empty if there are no genes.
+        Per-gene table [gene, normalised_lfc, q]: per-gene median normalised
+        LFC and q-value; empty if there are no genes.
     """
     grnas = T_vert['gRNA']
     genes = T_vert['gene']
@@ -99,5 +100,14 @@ def volcano_gRNA_gene_hits(alf, sfdr_corr, thr_lfchz, thr_lfcdz,
     plt.savefig(os.path.join(output_dir, f"volcano_{plot_name}.pdf"),
                 bbox_inches="tight")
     plt.close()
+
+    # output tables: raw q-value (without the plotting pseudocount)
+    T_gRNA = (T_gRNA.drop(columns='fdr_corr')
+                    .rename(columns={'score': 'normalised_lfc'})
+                    .assign(q=np.asarray(fdr, dtype=float)))
+    if not T_gene.empty:
+        T_gene = (T_gene.drop(columns='fdr_corr')
+                        .rename(columns={'score': 'normalised_lfc'})
+                        .assign(q=T_lfc_z_q_med['median_q'].values))
 
     return T_gRNA, T_gene

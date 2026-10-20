@@ -68,10 +68,17 @@ def make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond1, plot_na
     # 4. Robust stats, Z / MZ on the pooled control LFCs
     med_mad, MZZ, MZ, Z, me_sd, mod = med_mad_MZNP(LFC)
 
-    # 5. Diagnostic plot
-    _, _, perc_z  = make_histo_LFC(step, Z,  st, en)
+    # 5. Diagnostic plot, on [st, en] widened to fit the normalised LFCs
+    #    (bin_/his/perc above stay on [st, en]: they define the p-curve bins)
+    z_fin = Z[np.isfinite(Z)]
+    st_p, en_p = st, en
+    if z_fin.size:
+        st_p = min(st, float(np.round((np.floor(z_fin.min() / step) - 1) * step, 10)))
+        en_p = max(en, float(np.round((np.ceil(z_fin.max() / step) + 1) * step, 10)))
+    bin_plot, _, perc_plot = make_histo_LFC(step, LFC, st_p, en_p)
+    _,        _, perc_z    = make_histo_LFC(step, Z,   st_p, en_p)
     plot_histograms(
-        bin_, perc, perc_z,
+        bin_plot, perc_plot, perc_z,
         title=f'Distribution of {control} gRNAs: {plot_name}',
         color='b', xlab='LFC',
         save_name=f'distri_LFC_{control}_{plot_name}', output_dir=output_dir)
