@@ -14,7 +14,8 @@ from .collapse_table import collapse_table
 def volcano_gRNA_gene_hits(alf, sfdr_corr, thr_lfchz, thr_lfcdz,
                            T_vert, plot_name, control_type, output_dir,
                            norm_method="pooled"):
-    """Draw per-gRNA and per-gene Z volcano plots side by side and return their tables.
+    """
+    Draw per-gRNA and per-gene Z volcano plots side by side and return their tables.
 
     Panels: per-gRNA Z (left), per-gene Z (right). Replicate columns are
     collapsed to a per-gRNA median before plotting; per-gene values come from

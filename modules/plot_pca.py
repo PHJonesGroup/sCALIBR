@@ -65,7 +65,7 @@ def plot_pca(norm_dat, output_dir, log_transform=True):
         Normalised counts: three ID columns (sgRNA_name, gene, gene_type),
         then one count column per sample.
     output_dir : str
-        Directory where 'pca_qc.pdf' is saved.
+        Directory where plot is saved.
     log_transform : bool, optional
         Apply log2(x + 1) before PCA (default True), so a few high-count gRNAs
         don't dominate the components.

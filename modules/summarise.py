@@ -1,7 +1,9 @@
 import pandas as pd
 
 def summarise(T_vert, colnames, norm_method):
-    """Return per-gene median, mean, std for one quantity."""
+    """
+    Return per-gene median, mean, std for one quantity.
+    """
     long = T_vert.melt(id_vars=['gene'], value_vars=colnames,
                         var_name='rep', value_name='v')
     long['v'] = pd.to_numeric(long['v'], errors='coerce')

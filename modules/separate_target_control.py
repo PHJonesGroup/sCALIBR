@@ -69,7 +69,7 @@ def separate_target_control(st, en, step, T_norm_indiv,
         rows = T_norm_indiv[gt == cat]
         tab = lfc_table(rows, baseline, cond1)
         # pooled histogram: flatten all rep LFC columns into one distribution
-        binn, hiss, perc, LFC, lfc_cols, st1, en1 = compute_hiss_LFC(tab, st, en, step)
+        binn, hiss, perc = compute_hiss_LFC(tab, st, en, step)
         pooled_perc = np.nanmean(perc, axis=1) if perc.ndim == 2 else perc
         groups[cat] = {'table': tab, 'perc': pooled_perc, 'hiss' : hiss}
 
