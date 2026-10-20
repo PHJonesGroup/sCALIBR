@@ -3,13 +3,13 @@ import numpy as np
 import os
 import pandas as pd
 
-def plot_histograms(bin_edges, perc_lfc, perc_z=None, perc_mz=None,
+def plot_histograms(bin_edges, perc_lfc, perc_z=None,
                     title='', color='b', xlab='LFC', save_name='', output_dir=''):
-    """Plot stacked histogram panels: raw LFC, Z-LFC, and MZ-LFC.
+    """Plot stacked histogram panels: raw LFC and normalised LFC.
 
-    Panels are drawn only for the arrays that are provided, so the figure has
-    one, two, or three rows depending on which of perc_z / perc_mz are given.
-    The plotted values are also written to a CSV alongside the figure.
+    The normalised panel is drawn only if perc_z is given, so the figure has
+    one or two rows. The plotted values are also written to a CSV alongside
+    the figure.
 
     Parameters
     ----------
@@ -18,9 +18,7 @@ def plot_histograms(bin_edges, perc_lfc, perc_z=None, perc_mz=None,
     perc_lfc : numpy.ndarray
         Percentage histogram of the raw LFC values (top panel).
     perc_z : numpy.ndarray, optional
-        Percentage histogram of the Z-scored values; panel skipped if None.
-    perc_mz : numpy.ndarray, optional
-        Percentage histogram of the MZ-scored values; panel skipped if None.
+        Percentage histogram of the normalised LFC values; panel skipped if None.
     title : str, optional
         Figure-level title.
     color : str, optional
@@ -43,9 +41,7 @@ def plot_histograms(bin_edges, perc_lfc, perc_z=None, perc_mz=None,
     data = {"bin": np.round(bin_edges[:n_bins], 2),
             "LFC": np.round(np.asarray(perc_lfc, dtype=float), 3)}
     if perc_z is not None:
-        data["Z_LFC"] = np.round(np.asarray(perc_z, dtype=float), 3)
-    if perc_mz is not None:
-        data["MZ_LFC"] = np.round(np.asarray(perc_mz, dtype=float), 3)
+        data["normalised_LFC"] = np.round(np.asarray(perc_z, dtype=float), 3)
 
     base = os.path.splitext(save_name)[0]
     pd.DataFrame(data).to_csv(
@@ -54,9 +50,7 @@ def plot_histograms(bin_edges, perc_lfc, perc_z=None, perc_mz=None,
     # --- figure: one row per panel actually supplied ---
     panels = [(perc_lfc, xlab)]
     if perc_z is not None:
-        panels.append((perc_z, 'Z-corrected LFC'))
-    if perc_mz is not None:
-        panels.append((perc_mz, 'MZ-corrected LFC'))
+        panels.append((perc_z, 'Normalised LFC'))
 
     width = np.diff(bin_edges)[0] if len(bin_edges) > 1 else 0.05
 

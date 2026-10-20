@@ -70,9 +70,8 @@ def make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond1, plot_na
 
     # 5. Diagnostic plot
     _, _, perc_z  = make_histo_LFC(step, Z,  st, en)
-    _, _, perc_mz = make_histo_LFC(step, MZ, st, en)
     plot_histograms(
-        bin_, perc, perc_z, perc_mz,
+        bin_, perc, perc_z,
         title=f'Distribution of {control} gRNAs: {plot_name}',
         color='b', xlab='LFC',
         save_name=f'distri_LFC_{control}_{plot_name}', output_dir=output_dir)
