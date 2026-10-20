@@ -1,16 +1,16 @@
 import numpy as np
 import pandas as pd
 
-def general_volcano_interactive(alf, sfdr_corr, thr_scoreh, thr_scored, score, fdr, genes, grna=None):
+def plot_volcano_interactive(alf, sfdr_corr, thr_scoreh, thr_scored, score, fdr, genes, grna=None):
     """
     Draw a single interactive volcano panel and identify enriched / depleted hits.
 
     Parameters
     ----------
     alf : float
-        FDR significance threshold for hit calling.
+        q-value significance threshold for hit calling.
     sfdr_corr : float
-        Pseudocount added to FDR before -log10 (avoids log10(0) on the y-axis).
+        Pseudocount added to qvalue before -log10 (avoids log10(0) on the y-axis).
     thr_scoreh : float
         Upper score threshold; points at or above it (and significant) are enriched hits.
     thr_scored : float
@@ -18,14 +18,14 @@ def general_volcano_interactive(alf, sfdr_corr, thr_scoreh, thr_scored, score, f
     score : array-like
         Per-point score on the x-axis (LFC or Z-corrected LFC, depending on caller).
     fdr : array-like
-        Per-point FDR / q-values, aligned to ``score`` and ``genes``.
+        Per-poinyt q-values, aligned to ``score`` and ``genes``.
     genes : array-like
         Gene names, aligned to ``score`` and ``fdr``, used to label hit points.
     
     Returns
     -------
     LPV : numpy.ndarray
-        -log10 of the pseudocount-adjusted FDR, per point.
+        -log10 of the pseudocount-adjusted q-value, per point.
     indh : list of int
         Indices of enriched hits (significant, score >= thr_scoreh).
     indd : list of int

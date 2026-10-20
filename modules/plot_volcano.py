@@ -1,16 +1,16 @@
 import numpy as np
 import pandas as pd
 
-def general_volcano(alf, sfdr_corr, thr_scoreh, thr_scored, score, fdr, genes, ax=None, grna=None):
+def plot_volcano(alf, sfdr_corr, thr_scoreh, thr_scored, score, fdr, genes, ax=None, grna=None):
     """
     Draw a single volcano panel and identify enriched / depleted hits.
 
     Parameters
     ----------
     alf : float
-        FDR significance threshold for hit calling.
+        q-value significance threshold for hit calling.
     sfdr_corr : float
-        Pseudocount added to FDR before -log10 (avoids log10(0) on the y-axis).
+        Pseudocount added to qvalue before -log10 (avoids log10(0)).
     thr_scoreh : float
         Upper score threshold; points at or above it (and significant) are enriched hits.
     thr_scored : float
@@ -18,7 +18,7 @@ def general_volcano(alf, sfdr_corr, thr_scoreh, thr_scored, score, fdr, genes, a
     score : array-like
         Per-point score on the x-axis (LFC or Z-corrected LFC, depending on caller).
     fdr : array-like
-        Per-point FDR / q-values, aligned to ``score`` and ``genes``.
+        Per-point q-values, aligned to ``score`` and ``genes``.
     genes : array-like
         Gene names, aligned to ``score`` and ``fdr``, used to label hit points.
     ax : matplotlib.axes.Axes, optional
@@ -59,7 +59,7 @@ def general_volcano(alf, sfdr_corr, thr_scoreh, thr_scored, score, fdr, genes, a
         ma = max(5, np.max(LPV) + 1 if LPV.size > 0 else 5)
         ax.plot(score, LPV, 'pk', markersize=4, label='Not significant')
         ax.grid(True)
-        ax.set_ylabel('-log10 FDR', fontsize=14)
+        ax.set_ylabel('-log10(q-value)', fontsize=14)
         ax.set_ylim([0, ma])
 
         if not T_hs.empty:

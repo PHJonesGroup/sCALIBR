@@ -182,10 +182,10 @@ def main():
         thrLFC_d_h = [thr_lfcd, thr_lfch]
 
         T_gRNA, T_gene = volcano_gRNA_gene_hits.volcano_gRNA_gene_hits(
-            alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, name, control_type, c_outdir, norm_method)
+            alf, sfdr_corr, thr_lfchz, thr_lfcdz, T_t, name, control_type, c_outdir, norm_method)
 
         volcano_gRNA_gene_hits_interactive.volcano_gRNA_gene_hits_interactive(
-            alf, sfdr_corr, thr_lfch, thr_lfcd, thr_lfchz, thr_lfcdz, T_t, name, control_type, c_outdir, norm_method)
+            alf, sfdr_corr, thr_lfchz, thr_lfcdz, T_t, name, control_type, c_outdir, norm_method)
 
         T_gRNA.to_csv(os.path.join(c_outdir, f"volcano_{name}_grna.csv"), index=False)
         T_gene.to_csv(os.path.join(c_outdir, f"volcano_{name}_gene.csv"), index=False)
