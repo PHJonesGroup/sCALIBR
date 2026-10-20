@@ -57,7 +57,8 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name,
     hiss_cont : numpy.ndarray
         Control histogram counts, same convention as p_cont.
     p_targ : numpy.ndarray
-        Target p-curve (per-bin probability).
+        Target p-curve (per-bin probability). 'pooled': (n_bins,).
+        'sample': (n_bins, n_rep), one column per replicate.
     lfc_cols : list of str
         The replicate LFC column names, in the order used for the per-replicate
         axis of the arrays above (empty-meaning for 'pooled', but returned for
@@ -99,18 +100,27 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name,
     else:
         raise ValueError(f"norm_method must be 'pooled' or 'sample', got '{norm_method}'")
 
-    # target p-curve (pooled across reps either way — one target distribution)
+    # target p-curve: pooled -> one curve from all reps; sample -> one per rep
     hist = np.asarray(hist)
-    if hist.ndim == 2:
-        hist = hist.sum(axis=1)
-    p_targ, cL, cR, bin_pi, med_LFCp, his4p = q_val_frequentist_critical(alf, binn, hist)
+    if norm_method == "pooled":
+        if hist.ndim == 2:
+            hist = hist.sum(axis=1)
+        p_targ, cL, cR, bin_pi, med_LFCp, his4p = q_val_frequentist_critical(alf, binn, hist)
+    else:
+        if hist.ndim != 2 or hist.shape[1] != len(lfc_cols):
+            raise ValueError(f"target hist has shape {hist.shape}; expected "
+                             f"(n_bins, {len(lfc_cols)}) for lfc columns {lfc_cols}")
+        p_targ = np.column_stack([q_val_frequentist_critical(alf, binn, hist[:, j])[0]
+                                  for j in range(hist.shape[1])])   # (n_bins, n_rep)
 
     # save the p-curves
-    cols = {"bin": np.round(binn, 2), "target": np.round(p_targ, 4)}
+    cols = {"bin": np.round(binn, 2)}
     if norm_method == "pooled":
+        cols["target"] = np.round(p_targ, 4)
         cols[f"control_{control}"] = np.round(p_cont, 4)
     else:
         for j, col in enumerate(lfc_cols):
+            cols[f"target_{col}"] = np.round(p_targ[:, j], 4)
             cols[f"control_{control}_{col}"] = np.round(p_cont[:, j], 4)
     pd.DataFrame(cols).to_csv(
         os.path.join(output_dir, f"p_distri_targ_cont_{plot_name}_data.csv"), index=False)
@@ -118,10 +128,12 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name,
     plt.figure()
     if norm_method == "pooled":
         plt.plot(binn, p_cont, color="0.5", linestyle="--", label=f"control ({control})")
+        plt.plot(binn, p_targ, color="C3", linestyle="-", label="target")
     else:
+        # same colour per replicate: dashed = control, solid = target
         for j, col in enumerate(lfc_cols):
-            plt.plot(binn, p_cont[:, j], linestyle="--", label=f"control {col}")
-    plt.plot(binn, p_targ, color="C3", linestyle="-", label="target")
+            plt.plot(binn, p_cont[:, j], color=f"C{j}", linestyle="--", label=f"control {col}")
+            plt.plot(binn, p_targ[:, j], color=f"C{j}", linestyle="-",  label=f"target {col}")
     plt.title(f"Target vs. {control} gRNAs ({plot_name}, {norm_method})")
     plt.xlabel("LFC bin")
     plt.ylabel("Probability")
