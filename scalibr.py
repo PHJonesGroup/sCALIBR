@@ -93,11 +93,12 @@ def main():
     groups = separate_genes_by_grna_count.separate_genes_by_grna_count(T_vert, ggenes, gene_names, gg, ind_gn)
     ind_keep = sum((groups[c]["ind"] for c in keep_counts if c in groups), [])
     T_vert_f = T_vert.iloc[ind_keep, :].reset_index(drop=True)
+    plot_pca.plot_pca(T_vert_f, output_dir, name="raw")
 
     # Normalise (CPM) counts as percentage within a column
     norm_dat = normalise_total.normalise_total(ssc, T_vert_f, output_dir) 
     norm_dat.to_csv(os.path.join(output_dir, 'normalised_counts.csv'), index=False)
-    plot_pca.plot_pca(norm_dat, output_dir )
+    plot_pca.plot_pca(norm_dat, output_dir, name="normalised" )
     plot_heatmap.plot_heatmap(norm_dat, output_dir)
 
     # loops over contrasts
@@ -119,6 +120,7 @@ def main():
             if any(c == p for p in wanted_prefixes)
         ]
         norm_dat_filtered = norm_dat[keep]
+        plot_pca.plot_pca(norm_dat_filtered, c_outdir, name="normalised" )
 
         plot_gene_variability.plot_gene_variability(norm_dat_filtered, c_outdir, baseline, cond1, target_type)
         
