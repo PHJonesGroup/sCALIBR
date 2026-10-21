@@ -58,10 +58,8 @@ To run on your own data:
 | `target_type`     | Choice of target genes                                    | `GOI`                                 |
 | `control_type`    | Choice of control genes to base Z correction on                                                                      | `Zero-expressed genes`|
 | `contrasts`       | List of contrasts to run; each has a `name`, and `baseline`/`treatment` with lists of replicates (if present) | see below          |
-| `st`              | Start of x axis                                           | `-10`                                 |
-| `end`             | End of x axis                                             | `10`                                  |
 | `step`            | Bin sizes for histograms                                  | `0.05`                                |
-| `thr_lfchz`       | LFC threshold for volcano plot                            | `1.7`                                 |
+| `thr_lfchz`       | LFC threshold for volcano plot                            | `2`                                 |
 
 #### Contrasts
 
