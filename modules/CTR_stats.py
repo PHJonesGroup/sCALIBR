@@ -8,7 +8,7 @@ import matplotlib as mpl
 mpl.rcParams['pdf.fonttype'] = 42
 mpl.rcParams['ps.fonttype'] = 42
 
-def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name,
+def CTR_stats(st, en, step, T_control, hist, plot_name,
               control, norm_method, output_dir):
     """Calibrate a control null and score targets against it.
 
@@ -21,8 +21,6 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name,
 
     Parameters
     ----------
-    alf : float
-        Significance level, passed to the p-curve calculation.
     st, en : float
         Lower / upper bounds of the histogram (LFC) range.
     step : float
@@ -31,8 +29,6 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name,
         Control table: [gRNA, gene, gene_type, lfc_<rep>, ...].
     hist : numpy.ndarray
         Target histogram; 1-D counts, or 2-D (n_bins x n_reps).
-    baseline, cond : str
-        Condition labels.
     plot_name : str
         Contrast name, used in titles and filenames.
     control : str
@@ -59,8 +55,8 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name,
                          f"{T_control.columns.tolist()}")
 
     if norm_method == "pooled":
-        binn, bin_pz, me_sd = make_histo_crit_stats(alf, st, en, step, T_control,
-                                                    baseline, cond, plot_name, control, output_dir)
+        binn, bin_pz, me_sd = make_histo_crit_stats(st, en, step, T_control,
+                                                    plot_name, control, output_dir)
         p_cont = bin_pz[:, 1]
 
     elif norm_method == "sample":
@@ -69,7 +65,7 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name,
         for col in lfc_cols:
             sub = T_control[list(T_control.columns[:3]) + [col]]
             binn, bin_pz, me_sd_c = make_histo_crit_stats(
-                alf, st, en, step, sub, baseline, cond,
+                st, en, step, sub,
                 f"{plot_name}_{col}", control, output_dir)
             p_list.append(bin_pz[:, 1])
             mesd_list.append(me_sd_c)
@@ -85,12 +81,12 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name,
     if norm_method == "pooled":
         if hist.ndim == 2:
             hist = hist.sum(axis=1)
-        p_targ = q_val_frequentist_critical(alf, binn, hist)
+        p_targ = q_val_frequentist_critical(hist)
     else:
         if hist.ndim != 2 or hist.shape[1] != len(lfc_cols):
             raise ValueError(f"target hist has shape {hist.shape}; expected "
                              f"(n_bins, {len(lfc_cols)}) for lfc columns {lfc_cols}")
-        p_targ = np.column_stack([q_val_frequentist_critical(alf, binn, hist[:, j])
+        p_targ = np.column_stack([q_val_frequentist_critical(hist[:, j])
                                   for j in range(hist.shape[1])])   # (n_bins, n_rep)
 
     # save the p-curves

@@ -1,8 +1,6 @@
 import numpy as np
 
-def q_val_frequentist_critical(alf: float,
-                               bin_edges: np.ndarray,
-                               his: np.ndarray):
+def q_val_frequentist_critical(his: np.ndarray):
     """
     Given a histogram of LFC values (counts per bin), compute the combined
     two-tailed p-curve: the left-tail cumulative fraction up to the point
@@ -10,12 +8,8 @@ def q_val_frequentist_critical(alf: float,
 
     Parameters
     ----------
-    alf : float
-        Significance level (unused; kept for call compatibility).
-    bin_edges : numpy.ndarray
-        1-D array of left-edge bin positions (same length as ``his``).
     his : numpy.ndarray
-        1-D array of counts per bin (same length as ``bin_edges``).
+        1-D array of counts per bin.
 
     Returns
     -------

@@ -79,18 +79,14 @@ def main():
 
     # ============================ MODULE 1 ============================
     T_vert = pd.read_csv(input_counts)
-    si_input = T_vert.shape
-
-    gRNA = T_vert.iloc[:, 0].values  # first column (gRNA names)
-    gene = T_vert.iloc[:, 1].values  # second column (gene names)
+    gene_names = T_vert.iloc[:, 1].values  # second column (gene names)
 
     # Counts how many times each gene name/intergenic name occurs in the raw count file & gives number of gRNA per gene/ intergenic
-    gene_names = gene
-    ggenes, gg, ind_gn = count_vertical_names.count_vertical_names(gene_names)
+    _, gg, ind_gn = count_vertical_names.count_vertical_names(gene_names)
     plot_grna_distribution.plot_grna_distribution(gg, output_dir)
 
     # Removes genes with incorrect number of gRNAs
-    groups = separate_genes_by_grna_count.separate_genes_by_grna_count(T_vert, ggenes, gene_names, gg, ind_gn)
+    groups = separate_genes_by_grna_count.separate_genes_by_grna_count(gg, ind_gn)
     ind_keep = sum((groups[c]["ind"] for c in keep_counts if c in groups), [])
     T_vert_f = T_vert.iloc[ind_keep, :].reset_index(drop=True)
     plot_pca.plot_pca(T_vert_f, output_dir, name="raw")
@@ -136,7 +132,7 @@ def main():
 
         # Control null: mean/SD and p-curve (pooled, or one per replicate)
         me_sd, p_cont = CTR_stats.CTR_stats(
-            alf, st, en, step, T_control, hist, baseline, cond1, name, control_type, norm_method, c_outdir)
+            st, en, step, T_control, hist, name, control_type, norm_method, c_outdir)
 
         # pooled: me_sd is (2,); sample: (n_rep, 2) -> comma-separated per replicate
         me_sd_2d = np.atleast_2d(me_sd)

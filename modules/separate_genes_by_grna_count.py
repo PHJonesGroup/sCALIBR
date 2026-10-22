@@ -1,21 +1,15 @@
 import numpy as np
 
-def separate_genes_by_grna_count(T_vert, ggenes, gene_names, gg, ind_gn):
+def separate_genes_by_grna_count(gg, ind_gn):
     """
     Buckets every gene into a dictionary keyed by its gRNA count.
 
     Parameters
     ----------
-    T_vert : pandas.DataFrame
-        Table with ID columns followed by count columns
-    ggenes : list of str
-        List of unique gene names
-    gene_names : lsit of str
-        Gene name for every gRNA row
     gg : list of int
-        Number of gRNAs for each gene in ``ggenes``
+        Number of gRNAs for each gene (one entry per run of identical gene names).
     ind_gn : list of int
-        List of start indices (1-based) for each group in ``gene_names`` / T_vert.
+        List of start indices (1-based) for each gene in the count table.
 
     Returns
     -------

@@ -41,7 +41,7 @@ def lfc_table(tab, baseline, cond1):
     if len(baseline) != len(cond1):
         raise ValueError(f"baseline ({baseline}) and cond1 ({cond1}) must be the same length")
 
-    suffixes = [_pairing_suffix(b, c) for b, c in zip(baseline, cond1)]
+    suffixes = [_pairing_suffix(b) for b in baseline]
     dup = sorted({s for s in suffixes if suffixes.count(s) > 1})
     if dup:
         raise ValueError(f"Replicate labels {dup} are not unique for baseline {baseline}; "
@@ -56,9 +56,9 @@ def lfc_table(tab, baseline, cond1):
 
     return out
 
-def _pairing_suffix(baseline_col, cond1_col):
-    """Derive a short label for a baseline/cond1 pairing, e.g. ('T0_F','T1_F+') -> 'F',
-    ('T0_F_R1','T1_F_R1') -> 'F_R1'."""
+def _pairing_suffix(baseline_col):
+    """Derive a short replicate label from the baseline column, e.g. 'T0_F' -> 'F',
+    'T0_F_R1' -> 'F_R1'."""
     # take everything after the first underscore of the baseline column (drops the
     # time-point prefix), stripped of +/-
     tail = baseline_col.split('_', 1)[-1]           # 'T0_F_R1' -> 'F_R1'

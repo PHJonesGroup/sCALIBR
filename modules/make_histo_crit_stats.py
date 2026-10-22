@@ -5,23 +5,22 @@ from .compute_p_critLFC import compute_p_critLFC
 from .med_mad_MZNP import med_mad_MZNP
 from .plot_histograms import plot_histograms
 
-def make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond1, plot_name, control, output_dir):
+def make_histo_crit_stats(st, en, step, T_control, plot_name, control, output_dir):
     """
-    Histogram, p-curve, and mean/SD for control genes
-    (baseline vs cond1), pooling all replicate LFC columns.
+    Histogram, p-curve, and mean/SD for control genes, pooling all
+    replicate LFC columns.
     
     Parameters
     ----------
-    alf : float
-        Significance level for the critical-value / p-curve calculation.
     st, en : float
         Lower / upper bounds of the histogram (LFC) range.
     step : float
         Histogram bin width.
     T_control : pandas.DataFrame
         Control table: [gRNA, gene, lfc_<rep>, ...] (per-replicate LFC columns).
-    baseline, cond1 : str
-        Condition labels.
+    plot_name : str
+        Contrast name (plus replicate column in 'sample' mode), used in the
+        plot title and filename.
     control : str
         Control category label (e.g. 'Zero-expressed gene'), used in labels.
     output_dir : str
@@ -47,7 +46,7 @@ def make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond1, plot_na
     bin_, his, _ = make_histo_LFC(step, LFC, st, en)
 
     # 3. p-curve
-    bin_p = compute_p_critLFC(alf, bin_, his)
+    bin_p = compute_p_critLFC(bin_, his)
 
     # 4. Mean / SD and Z on the pooled control LFCs
     Z, me_sd = med_mad_MZNP(LFC)
