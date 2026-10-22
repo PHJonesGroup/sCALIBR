@@ -13,7 +13,7 @@ def _value_cols(T_vert, prefix):
         raise KeyError(f"No columns for '{prefix}'. Columns: {T_vert.columns.tolist()}")
     return cols
 
-def perGene_med_horiz(T_vert, control_type, norm_method="pooled"):
+def perGene_med_horiz(T_vert, norm_method="pooled"):
     """Per-gene summaries of LFC, normalised LFC, and Q.
 
     Two aggregation modes:
@@ -26,8 +26,6 @@ def perGene_med_horiz(T_vert, control_type, norm_method="pooled"):
     T_vert : pandas.DataFrame
         Per-gRNA table: [gRNA, gene, gene_type, lfc(_<rep>)...,
         normalised_lfc(_<rep>)..., Q(_<rep>)...].
-    control_type : str
-        Control category the Z columns were calibrated against (labels only).
     norm_method : {'pooled', 'sample'}
         Aggregation mode, as above.
 

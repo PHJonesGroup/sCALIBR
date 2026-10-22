@@ -27,11 +27,9 @@ def norm_table_individ(norm_dat, baseline, cond1):
         If a required count column (baseline/cond1) is missing from ``norm_dat``
     """
     def build_table(cond):
-        # accept a single string too
         if isinstance(cond, str):
             cond = [cond]
 
-        # exact-match the named columns (exact, so T1_F+ and T1_F- stay distinct)
         cond_cols = [c for c in cond if c in norm_dat.columns]
         if not cond_cols:
             raise ValueError(f"No columns found for condition '{cond}'. "

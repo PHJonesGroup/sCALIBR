@@ -63,7 +63,7 @@ def make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond1, plot_na
     bin_, his, perc = make_histo_LFC(step, LFC, st, en)
 
     # 3. Critical LFC thresholds & p-curve
-    bin_p, crit_LR = compute_p_critLFC(alf, bin_, his, baseline, cond1, control, output_dir)
+    bin_p, crit_LR = compute_p_critLFC(alf, bin_, his)
 
     # 4. Robust stats, Z / MZ on the pooled control LFCs
     med_mad, MZZ, MZ, Z, me_sd, mod = med_mad_MZNP(LFC)

@@ -7,7 +7,7 @@ def implement_p_control_indiv_gRNA(T_gRNA_LFC, binn, p_cont):
     
     Parameters
     ----------
-    T_target : pandas.DataFrame
+    T_gRNA_LFC : pandas.DataFrame
         Target gRNA LFC table: [gRNA, gene, gene_type, lfc(_<rep>)...].
     binn : array-like
         Histogram bin edges.

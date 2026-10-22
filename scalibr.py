@@ -126,8 +126,8 @@ def main():
         
         # Format normalised counts, compute mean and median of normalised counts
         tab_norm_T0, tab_norm_T1 = norm_table_individ.norm_table_individ(norm_dat_filtered, baseline, cond1)
-        plot_mean_median.plot_mean_median(tab_norm_T0, tab_norm_T1, c_outdir, baseline, cond1, mode='replicate')
-        plot_mean_median.plot_mean_median(tab_norm_T0, tab_norm_T1, c_outdir, baseline, cond1, mode='pooled')
+        plot_mean_median.plot_mean_median(tab_norm_T0, tab_norm_T1, c_outdir, mode='replicate')
+        plot_mean_median.plot_mean_median(tab_norm_T0, tab_norm_T1, c_outdir,mode='pooled')
 
         # ============================ MODULE 2 ============================
         # Separate and show controls, NTs, zGE, and normalised counts distribution
@@ -173,7 +173,7 @@ def main():
             save_name=f'distri_LFC_{target_type}_{name}', 
             output_dir=c_outdir)
 
-        T_t = make_tables_Z.make_tables_Z(T_vert_q, Z_t, control_type)
+        T_t = make_tables_Z.make_tables_Z(T_vert_q, Z_t)
 
         T_t.to_csv(os.path.join(c_outdir, f'target_{name}_gRNA.csv'), index=False)
 
@@ -187,10 +187,10 @@ def main():
         thrLFC_d_h = [thr_lfcd, thr_lfch]
 
         T_gRNA, T_gene = volcano_gRNA_gene_hits.volcano_gRNA_gene_hits(
-            alf, sfdr_corr, thr_lfchz, thr_lfcdz, T_t, name, control_type, c_outdir, norm_method)
+            alf, sfdr_corr, thr_lfchz, thr_lfcdz, T_t, name, c_outdir, norm_method)
 
         volcano_gRNA_gene_hits_interactive.volcano_gRNA_gene_hits_interactive(
-            alf, sfdr_corr, thr_lfchz, thr_lfcdz, T_t, name, control_type, c_outdir, norm_method)
+            alf, sfdr_corr, thr_lfchz, thr_lfcdz, T_t, name, c_outdir, norm_method)
 
         T_gRNA.to_csv(os.path.join(c_outdir, f"volcano_{name}_grna.csv"), index=False)
         T_gene.to_csv(os.path.join(c_outdir, f"volcano_{name}_gene.csv"), index=False)

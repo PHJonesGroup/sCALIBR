@@ -12,7 +12,7 @@ from .collapse_table import collapse_table
 
 
 def volcano_gRNA_gene_hits(alf, sfdr_corr, thr_lfchz, thr_lfcdz,
-                           T_vert, plot_name, control_type, output_dir,
+                           T_vert, plot_name, output_dir,
                            norm_method="pooled"):
     """
     Draw per-gRNA and per-gene Z volcano plots side by side and return their tables.
@@ -34,8 +34,6 @@ def volcano_gRNA_gene_hits(alf, sfdr_corr, thr_lfchz, thr_lfcdz,
         normalised_lfc(_<rep>)..., Q(_<rep>)...].
     plot_name : str
         Contrast name, used in the title and output filename.
-    control_type : str
-        Control category the normalised LFC columns were calibrated against.
     output_dir : str
         Directory where the figure is saved.
     norm_method : {'pooled', 'sample'}, optional
@@ -69,7 +67,7 @@ def volcano_gRNA_gene_hits(alf, sfdr_corr, thr_lfchz, thr_lfcdz,
 
     # --- per-gene aggregation ---
     (T_lfc_z_q_med, T_lfc_z_q_me,
-     T_LFC, T_Q, T_Z) = perGene_med_horiz(T_vert, control_type, norm_method)
+     T_LFC, T_Q, T_Z) = perGene_med_horiz(T_vert, norm_method)
 
     T_gene = pd.DataFrame()
     if not T_lfc_z_q_med.empty:

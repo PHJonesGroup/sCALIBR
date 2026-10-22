@@ -49,7 +49,7 @@ def _label_points(ax, xy, labels, colors, min_sep_frac=0.12):
     ax.set_ylim(ally.min() - pady, ally.max() + pady)
 
 
-def plot_pca(norm_dat, output_dir, log_transform=True):
+def plot_pca(norm_dat, output_dir, name, log_transform=True):
     """Plot sample PCA side by side: all gRNAs, and within each gene_type.
 
     Samples are the observations and gRNAs the features, so each point is one
@@ -154,5 +154,5 @@ def plot_pca(norm_dat, output_dir, log_transform=True):
         ax.spines[["top", "right"]].set_visible(False)
 
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, "pca_qc.pdf"), bbox_inches="tight")
+    plt.savefig(os.path.join(output_dir, f"{name}_pca_qc.pdf"), bbox_inches="tight")
     plt.close()

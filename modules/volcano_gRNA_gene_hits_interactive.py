@@ -10,7 +10,7 @@ from .collapse_table import collapse_table
 
 def volcano_gRNA_gene_hits_interactive(
     alf, sfdr_corr, thr_lfchz, thr_lfcdz,
-    T_vert, plot_name, control_type, output_dir, norm_method="pooled"
+    T_vert, plot_name, output_dir, norm_method="pooled"
 ):
     """
     Draw interactive per-gRNA and per-gene Z volcano plots and write them as HTML.
@@ -31,8 +31,6 @@ def volcano_gRNA_gene_hits_interactive(
         normalised_lfc(_<rep>)..., Q(_<rep>)...].
     plot_name : str
         Contrast name, used in the title and output filename.
-    control_type : str
-        Control category the Z columns were calibrated against.
     output_dir : str
         Directory where the HTML figure is saved.
     norm_method : {'pooled', 'sample'}, optional
@@ -81,7 +79,7 @@ def volcano_gRNA_gene_hits_interactive(
 
     # --- per-gene aggregation ---
     (T_lfc_z_q_med, T_lfc_z_q_me,
-     T_LFC, T_Q, T_Z) = perGene_med_horiz(T_vert, control_type, norm_method)
+     T_LFC, T_Q, T_Z) = perGene_med_horiz(T_vert, norm_method)
 
     if not T_lfc_z_q_med.empty:
         # --- Right: per-gene Z ---

@@ -3,10 +3,9 @@ import matplotlib.pyplot as plt
 import os
 from .q_val_frequentist_critical import q_val_frequentist_critical
 
-def compute_p_critLFC(alf, binn, hiss, baseline, cond, control, output_dir):
+def compute_p_critLFC(alf, binn, hiss):
     """
-    Compute the p-curve and critical LFC values for a single LFC distribution
-    (contrast cond vs baseline).
+    Compute the p-curve and critical LFC values for the control LFC distribution
 
     Parameters
     ----------
@@ -16,12 +15,6 @@ def compute_p_critLFC(alf, binn, hiss, baseline, cond, control, output_dir):
         Bin edges (left edges) for the LFC histogram.
     hiss : numpy.ndarray
         Histogram counts (single series), same length as ``binn``.
-    baseline, cond : str
-        Condition labels.
-    control : str
-        Control category label (e.g. 'Zero-expressed gene'), used in labels.
-    output_dir : str
-        Directory where the plot is saved.
 
     Returns
     -------

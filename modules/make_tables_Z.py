@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def make_tables_Z(target, Z_t, control_type):
+def make_tables_Z(target, Z_t):
     """Build a per-replicate gRNA table with LFC, control-calibrated Z, and Q.
 
     Parameters
@@ -11,14 +11,11 @@ def make_tables_Z(target, Z_t, control_type):
     Z_t : numpy.ndarray
         (n_gRNA, n_reps) per-replicate Z-scores, column order matching the
         lfc_* columns of ``target``.
-    control_type : str
-        Control category the Z-scores were calibrated against; used in the
-        Z column names.
 
     Returns
     -------
     T_wt : pandas.DataFrame
-        [gRNA, gene, gene_type, lfc_<r>, Z_<control_type>_lfc_<r>, Q_<r>, ...],
+        [gRNA, gene, gene_type, lfc_<r>, normalised_lfc_<r>, Q_<r>, ...],
         one set of columns per replicate.
 
     Raises

@@ -7,12 +7,12 @@ import matplotlib as mpl
 mpl.rcParams['pdf.fonttype'] = 42
 mpl.rcParams['ps.fonttype'] = 42
 
-def plot_mean_median(tab_norm_T0, tab_norm_T1, output_dir, baseline_label, condition_label, mode='replicate'):
+def plot_mean_median(tab_norm_T0, tab_norm_T1, output_dir, mode='replicate'):
     """
-    Plot mean and median of normalised CPM counts as a bar chart.
+    Plot mean and median of normalised counts as a bar chart.
     
     Two modes are supported:
-    - 'replicate': one bar per sample/replicate column (original behaviour).
+    - 'replicate': one bar per sample/replicate column.
     - 'pooled': replicates are pooled together, and mean/median are computed
       per gene_type, separately for baseline and condition.
 
@@ -27,10 +27,6 @@ def plot_mean_median(tab_norm_T0, tab_norm_T1, output_dir, baseline_label, condi
     mode : str, default 'replicate'
         Either 'replicate' (per-sample mean/median) or 'pooled' 
         (per-gene_type mean/median, pooling all replicates together).
-    baseline_label : str
-        Label to use for the baseline condition in 'pooled' mode.
-    condition_label : str
-        Label to use for the treatment condition in 'pooled' mode.
 
     Returns
     -------
@@ -77,18 +73,18 @@ def plot_mean_median(tab_norm_T0, tab_norm_T1, output_dir, baseline_label, condi
 
             means.append(np.mean(t0_vals))
             medians.append(np.median(t0_vals))
-            labels.append(f"{gt}_{baseline_label}")
+            labels.append(f"{gt} baseline")
 
             means.append(np.mean(t1_vals))
             medians.append(np.median(t1_vals))
-            labels.append(f"{gt}_{condition_label}")
+            labels.append(f"{gt} treatment")
 
         means = np.array(means)
         medians = np.array(medians)
 
         plot_title = 'Mean and Median of normalised read counts (pooled by gene type)'
         csv_name = "normalised_counts_mean_med_data_pooled.csv"
-        pdf_name = "normalised_counts_mean_med_pooled.png"
+        pdf_name = "normalised_counts_mean_med_pooled.pdf"
 
     me_med = np.vstack([means, medians])
 
@@ -118,7 +114,7 @@ def plot_mean_median(tab_norm_T0, tab_norm_T1, output_dir, baseline_label, condi
         Patch(color='tab:orange', label='Median'),
     ]
 
-    plt.ylabel('CPM', fontsize=12)
+    plt.ylabel('Normalised counts', fontsize=12)
     plt.title(plot_title, fontsize=14)
     plt.xticks(indices, labels, rotation=45, ha='right')
     plt.grid(axis='y', linestyle='--', alpha=0.5)
