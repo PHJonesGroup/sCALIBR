@@ -5,7 +5,7 @@ from .q_val_frequentist_critical import q_val_frequentist_critical
 
 def compute_p_critLFC(alf, binn, hiss):
     """
-    Compute the p-curve and critical LFC values for the control LFC distribution
+    Compute the p-curve for the control LFC distribution
 
     Parameters
     ----------
@@ -20,12 +20,8 @@ def compute_p_critLFC(alf, binn, hiss):
     -------
     bin_p : numpy.ndarray
         Two-column array [bin, p]: bin edges with the corresponding p-curve.
-    crit_LR : numpy.ndarray
-        [left_critical, right_critical] critical LFC thresholds.
     """
-    p, cl, cr, bin_pz, med_LFCp, hiss4p = q_val_frequentist_critical(alf, binn, hiss)
-    crit_LR = np.array([cl, cr])
-
+    p = q_val_frequentist_critical(alf, binn, hiss)
     bin_p = np.column_stack((binn, p))
 
-    return bin_p, crit_LR
+    return bin_p

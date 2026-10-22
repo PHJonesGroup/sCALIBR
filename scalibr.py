@@ -134,8 +134,8 @@ def main():
         T_target, T_control, hist, groups, bin, st, en = separate_target_control.separate_target_control(
             step, norm_dat_filtered, target_type, control_type, baseline, cond1, name, c_outdir)
 
-        # Choose control, compute Z/MZ/crit‑LR, implement q, adjust controls for Z
-        (crit_LR, me_sd, med_mad, binn, p_cont, hiss_cont, p_targ, ctrl_lfc_cols) = CTR_stats.CTR_stats(
+        # Control null: mean/SD and p-curve (pooled, or one per replicate)
+        (me_sd, binn, p_cont, hiss_cont, p_targ, ctrl_lfc_cols) = CTR_stats.CTR_stats(
             alf, st, en, step, T_control, hist, baseline, cond1, name, control_type, norm_method, c_outdir)
 
         # pooled: me_sd is (2,); sample: (n_rep, 2) -> comma-separated per replicate
@@ -179,13 +179,6 @@ def main():
 
         # -------------------- 2.5 --------------------
         # Find extreme sets (enriched/ depleted) and volcano for gRNA and gene
-        # pooled: crit_LR is [left, right]; sample: (n_rep, 2) -> median across
-        # replicates, matching the per-gRNA median LFC plotted in the volcano
-        crit_med = np.median(np.atleast_2d(crit_LR), axis=0)
-        thr_lfch = crit_med[1]    # right-tail critical LFC (enrichment)
-        thr_lfcd = crit_med[0]    # left-tail critical LFC (depletion)
-        thrLFC_d_h = [thr_lfcd, thr_lfch]
-
         T_gRNA, T_gene = volcano_gRNA_gene_hits.volcano_gRNA_gene_hits(
             alf, sfdr_corr, thr_lfchz, thr_lfcdz, T_t, name, c_outdir, norm_method)
 

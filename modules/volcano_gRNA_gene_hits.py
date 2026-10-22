@@ -66,8 +66,7 @@ def volcano_gRNA_gene_hits(alf, sfdr_corr, thr_lfchz, thr_lfcdz,
     axs[0].set_title('Volcano per gRNA', fontsize=16)
 
     # --- per-gene aggregation ---
-    (T_lfc_z_q_med, T_lfc_z_q_me,
-     T_LFC, T_Q, T_Z) = perGene_med_horiz(T_vert, norm_method)
+    T_lfc_z_q_med = perGene_med_horiz(T_vert, norm_method)
 
     T_gene = pd.DataFrame()
     if not T_lfc_z_q_med.empty:

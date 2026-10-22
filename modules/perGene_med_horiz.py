@@ -14,7 +14,7 @@ def _value_cols(T_vert, prefix):
     return cols
 
 def perGene_med_horiz(T_vert, norm_method="pooled"):
-    """Per-gene summaries of LFC, normalised LFC, and Q.
+    """Per-gene medians of LFC, normalised LFC, and Q.
 
     Two aggregation modes:
       'pooled' — one median over all (guides x replicates) values for the gene.
@@ -31,10 +31,8 @@ def perGene_med_horiz(T_vert, norm_method="pooled"):
 
     Returns
     -------
-    T_lfc_z_q_med, T_lfc_z_q_me : pandas.DataFrame
-        Per-gene medians / means [genes, *_LFC, *_Z, *_q].
-    T_LFC, T_Q, T_Z : pandas.DataFrame
-        Per-gene summary tables with median, mean, std (and n_gRNA for LFC).
+    T_lfc_normalised_q_med : pandas.DataFrame
+        Per-gene medians [genes, median_LFC, median_normalised_LFC, median_q].
     """
     blocks = {
         'LFC':            _value_cols(T_vert, 'lfc'),
@@ -42,38 +40,14 @@ def perGene_med_horiz(T_vert, norm_method="pooled"):
         'Q':              _value_cols(T_vert, 'Q'),
     }
 
-    med, mean, std = {}, {}, {}
-    for key, cs in blocks.items():
-        med[key], mean[key], std[key] = summarise(T_vert, cs, norm_method)
+    med = {key: summarise(T_vert, cs, norm_method)[0] for key, cs in blocks.items()}
 
-    genes = med['LFC'].index.values
-    n_grna = T_vert.groupby('gene')['gRNA'].nunique().reindex(genes).values
     eps = 1e-6
-
     T_lfc_normalised_q_med = pd.DataFrame({
-        'genes':      genes,
+        'genes':      med['LFC'].index.values,
         'median_LFC': med['LFC'].values,
         'median_normalised_LFC':   med['normalised_LFC'].values,
         'median_q':   med['Q'].values + eps,
     })
-    T_lfc_normalised_q_me = pd.DataFrame({
-        'genes':    genes,
-        'mean_LFC': mean['LFC'].values,
-        'mean_normalised_LFC':   mean['normalised_LFC'].values,
-        'mean_q':   mean['Q'].values + eps,
-    })
-    T_LFC = pd.DataFrame({'genes': genes,
-                          'median_LFC': med['LFC'].values,
-                          'mean_LFC': mean['LFC'].values,
-                          'std_LFC': std['LFC'].values,
-                          'n_gRNA': n_grna})
-    T_normalised   = pd.DataFrame({'genes': genes,
-                          'median_normalised_LFC': med['normalised_LFC'].values,
-                          'mean_normalised_LFC': mean['normalised_LFC'].values,
-                          'std_normalised_LFC': std['normalised_LFC'].values})
-    T_Q   = pd.DataFrame({'genes': genes,
-                          'median_q': med['Q'].values + eps,
-                          'mean_q': mean['Q'].values + eps,
-                          'std_q': std['Q'].values})
 
-    return T_lfc_normalised_q_med, T_lfc_normalised_q_me, T_LFC, T_Q, T_normalised
+    return T_lfc_normalised_q_med

@@ -14,15 +14,15 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name,
 
     Two calibration modes:
       'pooled' — all control LFC values across replicates are pooled into one
-                 distribution, giving a single null (one p-curve, one mean/SD,
-                 one pair of critical thresholds) shared by every replicate.
+                 distribution, giving a single null (one p-curve, one mean/SD)
+                 shared by every replicate.
       'sample' — each replicate column is calibrated against its own control
                  LFC distribution, giving a separate null per replicate.
 
     Parameters
     ----------
     alf : float
-        Significance level for the critical-value / p-curve calculation.
+        Significance level, passed to the p-curve calculation.
     st, en : float
         Lower / upper bounds of the histogram (LFC) range.
     step : float
@@ -44,12 +44,8 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name,
 
     Returns
     -------
-    crit_LR : numpy.ndarray
-        'pooled': [left, right]. 'sample': (n_rep, 2), one row per replicate.
     me_sd : numpy.ndarray
         'pooled': [mean, SD]. 'sample': (n_rep, 2), one row per replicate.
-    med_mad : numpy.ndarray
-        'pooled': [median, MAD]. 'sample': (n_rep, 2).
     binn : numpy.ndarray
         Histogram bin edges (shared across modes and replicates).
     p_cont : numpy.ndarray
@@ -70,32 +66,28 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name,
                          f"{T_control.columns.tolist()}")
 
     if norm_method == "pooled":
-        (binn, hiss_z, perc, crit_LR, bin_pz, med_mad, me_sd, mod, MZ, Z, n_z
+        (binn, hiss_z, perc, bin_pz, me_sd, Z, n_z
          ) = make_histo_crit_stats(alf, st, en, step, T_control,
                                    baseline, cond, plot_name, control, output_dir)
         p_cont = bin_pz[:, 1]
         hiss_cont = hiss_z
 
     elif norm_method == "sample":
-        p_list, hiss_list, crit_list, mesd_list, medmad_list = [], [], [], [], []
+        p_list, hiss_list, mesd_list = [], [], []
         binn = None
         for col in lfc_cols:
             sub = T_control[list(T_control.columns[:3]) + [col]]
-            (binn, hiss_z, perc, crit_c, bin_pz, med_mad_c, me_sd_c,
-             mod, MZ, Z, n_z) = make_histo_crit_stats(
+            (binn, hiss_z, perc, bin_pz, me_sd_c,
+             Z, n_z) = make_histo_crit_stats(
                 alf, st, en, step, sub, baseline, cond,
                 f"{plot_name}_{col}", control, output_dir)
             p_list.append(bin_pz[:, 1])
             hiss_list.append(hiss_z)
-            crit_list.append(crit_c)
             mesd_list.append(me_sd_c)
-            medmad_list.append(med_mad_c)
 
         p_cont    = np.column_stack(p_list)       # (n_bins, n_rep)
         hiss_cont = np.column_stack(hiss_list)
-        crit_LR   = np.vstack(crit_list)          # (n_rep, 2)
-        me_sd     = np.vstack(mesd_list)
-        med_mad   = np.vstack(medmad_list)
+        me_sd     = np.vstack(mesd_list)          # (n_rep, 2)
 
     else:
         raise ValueError(f"norm_method must be 'pooled' or 'sample', got '{norm_method}'")
@@ -105,12 +97,12 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name,
     if norm_method == "pooled":
         if hist.ndim == 2:
             hist = hist.sum(axis=1)
-        p_targ, cL, cR, bin_pi, med_LFCp, his4p = q_val_frequentist_critical(alf, binn, hist)
+        p_targ = q_val_frequentist_critical(alf, binn, hist)
     else:
         if hist.ndim != 2 or hist.shape[1] != len(lfc_cols):
             raise ValueError(f"target hist has shape {hist.shape}; expected "
                              f"(n_bins, {len(lfc_cols)}) for lfc columns {lfc_cols}")
-        p_targ = np.column_stack([q_val_frequentist_critical(alf, binn, hist[:, j])[0]
+        p_targ = np.column_stack([q_val_frequentist_critical(alf, binn, hist[:, j])
                                   for j in range(hist.shape[1])])   # (n_bins, n_rep)
 
     # save the p-curves
@@ -143,4 +135,4 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name,
                 bbox_inches="tight")
     plt.close()
 
-    return crit_LR, me_sd, med_mad, binn, p_cont, hiss_cont, p_targ, lfc_cols
+    return me_sd, binn, p_cont, hiss_cont, p_targ, lfc_cols

@@ -7,7 +7,7 @@ from .plot_histograms import plot_histograms
 
 def make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond1, plot_name, control, output_dir):
     """
-    Histograms, critical LFC thresholds, and stats for control genes
+    Histogram, p-curve, and mean/SD for control genes
     (baseline vs cond1), pooling all replicate LFC columns.
     
     Parameters
@@ -35,18 +35,10 @@ def make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond1, plot_na
         Counts per bin of the pooled control LFCs.
     perc : numpy.ndarray
         Percentages per bin.
-    crit_LR : numpy.ndarray
-        [left, right] critical LFC thresholds.
     bin_p : numpy.ndarray
         [bin, p] array (bin edges with the control p-curve).
-    med_mad : numpy.ndarray
-        [median, MAD] of the pooled control LFC.
     me_sd : numpy.ndarray
         [mean, SD] of the pooled control LFC.
-    mod : float
-        Mode (or mode-like statistic) of the pooled control LFC.
-    MZ : numpy.ndarray
-        Modified (median/MAD-based) Z-scores, one per pooled LFC value.
     Z : numpy.ndarray
         Standard (mean/SD-based) Z-scores, one per pooled LFC value.
     n : int
@@ -62,11 +54,11 @@ def make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond1, plot_na
     # 2. Histogram of the pooled control LFCs
     bin_, his, perc = make_histo_LFC(step, LFC, st, en)
 
-    # 3. Critical LFC thresholds & p-curve
-    bin_p, crit_LR = compute_p_critLFC(alf, bin_, his)
+    # 3. p-curve
+    bin_p = compute_p_critLFC(alf, bin_, his)
 
-    # 4. Robust stats, Z / MZ on the pooled control LFCs
-    med_mad, MZZ, MZ, Z, me_sd, mod = med_mad_MZNP(LFC)
+    # 4. Mean / SD and Z on the pooled control LFCs
+    Z, me_sd = med_mad_MZNP(LFC)
 
     # 5. Diagnostic plot, on [st, en] widened to fit the normalised LFCs
     #    (bin_/his/perc above stay on [st, en]: they define the p-curve bins)
@@ -83,4 +75,4 @@ def make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond1, plot_na
         color='b', xlab='LFC',
         save_name=f'distri_LFC_{control}_{plot_name}', output_dir=output_dir)
 
-    return bin_, his, perc, crit_LR, bin_p, med_mad, me_sd, mod, MZ, Z, len(LFC)
+    return bin_, his, perc, bin_p, me_sd, Z, len(LFC)

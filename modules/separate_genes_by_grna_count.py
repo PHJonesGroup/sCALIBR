@@ -20,25 +20,13 @@ def separate_genes_by_grna_count(T_vert, ggenes, gene_names, gg, ind_gn):
     Returns
     -------
     groups : dict
-        Maps gRNA-count -> dict with keys:
-        - 'genes'      : list of str, gene names with that gRNA count
-        - 'gene_names' : list of str, per-gRNA gene names for those genes
-        - 'ind'        : list of int, 0-based row indices into T_vert
-        - 'wt'         : ndarray (n_gRNA x n_count_cols), stacked count data
+        Maps gRNA-count -> dict with key:
+        - 'ind' : list of int, 0-based row indices into T_vert
     """
-    wt = T_vert.iloc[:, 3:].to_numpy()
-
     groups = {}
     for i in range(len(gg)):
         c = gg[i]
         start = ind_gn[i] - 1
-        g = groups.setdefault(c, {"genes": [], "gene_names": [], "ind": [], "wt": []})
-        g["genes"].append(ggenes[i])
-        g["gene_names"].extend(gene_names[start:start + c])
-        g["ind"].extend(range(start, start + c))
-        g["wt"].append(wt[start:start + c, :])
-
-    for c, g in groups.items():
-        g["wt"] = np.vstack(g["wt"]) if g["wt"] else np.empty((0, wt.shape[1]))
+        groups.setdefault(c, {"ind": []})["ind"].extend(range(start, start + c))
 
     return groups

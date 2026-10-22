@@ -78,8 +78,7 @@ def volcano_gRNA_gene_hits_interactive(
     add_volcano(T_gRNA, T_hs, T_ds, row=1, col=1, label="gRNA", show_legend=True)
 
     # --- per-gene aggregation ---
-    (T_lfc_z_q_med, T_lfc_z_q_me,
-     T_LFC, T_Q, T_Z) = perGene_med_horiz(T_vert, norm_method)
+    T_lfc_z_q_med = perGene_med_horiz(T_vert, norm_method)
 
     if not T_lfc_z_q_med.empty:
         # --- Right: per-gene Z ---
