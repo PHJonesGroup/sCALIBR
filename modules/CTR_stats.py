@@ -55,19 +55,18 @@ def CTR_stats(st, en, step, T_control, hist, plot_name,
                          f"{T_control.columns.tolist()}")
 
     if norm_method == "pooled":
-        binn, bin_pz, me_sd = make_histo_crit_stats(st, en, step, T_control,
+        binn, p_cont, me_sd = make_histo_crit_stats(st, en, step, T_control,
                                                     plot_name, control, output_dir)
-        p_cont = bin_pz[:, 1]
 
     elif norm_method == "sample":
         p_list, mesd_list = [], []
         binn = None
         for col in lfc_cols:
             sub = T_control[list(T_control.columns[:3]) + [col]]
-            binn, bin_pz, me_sd_c = make_histo_crit_stats(
+            binn, p_c, me_sd_c = make_histo_crit_stats(
                 st, en, step, sub,
                 f"{plot_name}_{col}", control, output_dir)
-            p_list.append(bin_pz[:, 1])
+            p_list.append(p_c)
             mesd_list.append(me_sd_c)
 
         p_cont    = np.column_stack(p_list)       # (n_bins, n_rep)

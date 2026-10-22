@@ -7,8 +7,7 @@ import argparse
 import sys
 from importlib.metadata import version, PackageNotFoundError
 
-from modules import count_vertical_names, plot_grna_distribution
-from modules import separate_genes_by_grna_count
+from modules import plot_grna_distribution
 from modules import normalise_total, plot_gene_variability, plot_pca, plot_heatmap
 from modules import norm_table_individ, plot_mean_median
 from modules import separate_target_control
@@ -78,19 +77,18 @@ def main():
 
     # ============================ MODULE 1 ============================
     T_vert = pd.read_csv(input_counts)
-    gene_names = T_vert.iloc[:, 1].values  # second column (gene names)
+    gene_names = T_vert.iloc[:, 1]  # second column (gene names)
 
-    # Counts how many times each gene name/intergenic name occurs in the raw count file & gives number of gRNA per gene/ intergenic
-    _, gg, ind_gn = count_vertical_names.count_vertical_names(gene_names)
-    plot_grna_distribution.plot_grna_distribution(gg, output_dir)
+    # Number of gRNAs per gene/intergenic name, counted over the whole file
+    grna_per_gene = gene_names.value_counts()
+    plot_grna_distribution.plot_grna_distribution(grna_per_gene.tolist(), output_dir)
 
     # Removes genes with incorrect number of gRNAs
-    groups = separate_genes_by_grna_count.separate_genes_by_grna_count(gg, ind_gn)
-    ind_keep = sum((groups[c]["ind"] for c in keep_counts if c in groups), [])
-    T_vert_f = T_vert.iloc[ind_keep, :].reset_index(drop=True)
+    keep_rows = gene_names.map(grna_per_gene).isin(keep_counts)
+    T_vert_f = T_vert[keep_rows].reset_index(drop=True)
     plot_pca.plot_pca(T_vert_f, output_dir, name="raw")
 
-    # Normalise (CPM) counts as percentage within a column
+    # Normalise counts within a sample
     norm_dat = normalise_total.normalise_total(ssc, T_vert_f, output_dir) 
     norm_dat.to_csv(os.path.join(output_dir, 'normalised_counts.csv'), index=False)
     plot_pca.plot_pca(norm_dat, output_dir, name="normalised" )
@@ -126,7 +124,7 @@ def main():
 
         # ============================ MODULE 2 ============================
         # Separate and show controls, NTs, zGE, and normalised counts distribution
-        T_target, T_control, hist, bin, st, en = separate_target_control.separate_target_control(
+        T_target, T_control, hist, bin_edges, st, en = separate_target_control.separate_target_control(
             step, norm_dat_filtered, target_type, control_type, baseline, cond1, name, c_outdir)
 
         # Control null: mean/SD and p-curve (pooled, or one per replicate)
@@ -149,7 +147,7 @@ def main():
                     f"{mean_str}\t{sd_str}\n")
             
         # Get recalibrated p/q values for gRNAs
-        T_vert_q = p_control_target_implement.p_control_target_implement(T_target, T_control, bin, p_cont)
+        T_vert_q = p_control_target_implement.p_control_target_implement(T_target, T_control, bin_edges, p_cont)
 
         # keep targets only: controls were needed to calibrate Q / Z, not for
         # the target histogram, target table or volcano plots
@@ -160,10 +158,10 @@ def main():
         lfc_cols = [c for c in T_vert_q.columns if c.startswith('lfc')]
         LFC_t = T_vert_q[lfc_cols].to_numpy(dtype=float)
 
-        Z_t, bin, perc_t, perc_zt = computeZ.computeZ(st, en, step, LFC_t, me_sd)
+        Z_t, plot_bins, perc_t, perc_zt = computeZ.computeZ(st, en, step, LFC_t, me_sd)
 
         plot_histograms.plot_histograms(
-            bin_edges=bin, perc_lfc=perc_t, perc_z=perc_zt, 
+            bin_edges=plot_bins, perc_lfc=perc_t, perc_z=perc_zt, 
             title=f'Distribution of {target_type} gRNAs: {name}',
             save_name=f'distri_LFC_{target_type}_{name}', 
             output_dir=c_outdir)

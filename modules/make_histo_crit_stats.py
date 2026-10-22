@@ -1,6 +1,6 @@
 import numpy as np
 from .make_histo_LFC import make_histo_LFC
-from .compute_p_critLFC import compute_p_critLFC
+from .q_val_frequentist_critical import q_val_frequentist_critical
 from .med_mad_MZNP import med_mad_MZNP
 from .plot_histograms import plot_histograms
 
@@ -29,8 +29,8 @@ def make_histo_crit_stats(st, en, step, T_control, plot_name, control, output_di
     -------
     bin_ : numpy.ndarray
         Histogram bin edges (left edges).
-    bin_p : numpy.ndarray
-        [bin, p] array (bin edges with the control p-curve).
+    p : numpy.ndarray
+        Control p-curve, one value per bin of ``bin_``.
     me_sd : numpy.ndarray
         [mean, SD] of the pooled control LFC.
     """
@@ -45,13 +45,13 @@ def make_histo_crit_stats(st, en, step, T_control, plot_name, control, output_di
     bin_, his, _ = make_histo_LFC(step, LFC, st, en)
 
     # 3. p-curve
-    bin_p = compute_p_critLFC(bin_, his)
+    p = q_val_frequentist_critical(his)
 
     # 4. Mean / SD and Z on the pooled control LFCs
     Z, me_sd = med_mad_MZNP(LFC)
 
     # 5. Diagnostic plot, on [st, en] widened to fit the normalised LFCs
-    #    (bin_/his/perc above stay on [st, en]: they define the p-curve bins)
+    #    (bin_/his above stay on [st, en]: they define the p-curve bins)
     z_fin = Z[np.isfinite(Z)]
     st_p, en_p = st, en
     if z_fin.size:
@@ -65,4 +65,4 @@ def make_histo_crit_stats(st, en, step, T_control, plot_name, control, output_di
         color='b', xlab='LFC',
         save_name=f'distri_LFC_{control}_{plot_name}', output_dir=output_dir)
 
-    return bin_, bin_p, me_sd
+    return bin_, p, me_sd
