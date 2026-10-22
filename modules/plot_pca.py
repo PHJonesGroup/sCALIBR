@@ -1,7 +1,5 @@
 import os
-import re
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from sklearn.decomposition import PCA
@@ -101,7 +99,7 @@ def plot_pca(norm_dat, output_dir, name, log_transform=True):
         var = list(p.explained_variance_ratio_ * 100) + [0.0]
         return coords, var
 
-    fig, axs = plt.subplots(1, 2, figsize=(13, 5.5))
+    _, axs = plt.subplots(1, 2, figsize=(13, 5.5))
 
     # ---- panel 1: all gRNAs ----
     coords, var = pca_of(norm_dat)

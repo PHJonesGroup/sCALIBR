@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 from .make_histo_LFC import make_histo_LFC
 from .compute_p_critLFC import compute_p_critLFC

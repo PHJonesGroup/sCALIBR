@@ -1,12 +1,10 @@
 import numpy as np
 import pandas as pd
-import re
 from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.spatial.distance import squareform
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
-from .sample_group import sample_group
 
 def plot_heatmap(T_norm, output_dir, id_cols=None,
                            method="pearson", target_type=None,
@@ -69,11 +67,9 @@ def plot_heatmap(T_norm, output_dir, id_cols=None,
         sample_order = dendro["ivl"]
         corr = corr.loc[sample_order, sample_order]
 
-    sample_groups = [sample_group(s) for s in sample_order]
-
     n = len(sample_order)
     fig_size = max(6, 0.4 * n)
-    fig, ax = plt.subplots(figsize=(fig_size, fig_size))
+    _, ax = plt.subplots(figsize=(fig_size, fig_size))
 
     sns.heatmap(
         corr,

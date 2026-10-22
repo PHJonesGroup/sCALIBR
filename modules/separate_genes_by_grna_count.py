@@ -1,5 +1,3 @@
-import numpy as np
-
 def separate_genes_by_grna_count(gg, ind_gn):
     """
     Buckets every gene into a dictionary keyed by its gRNA count.

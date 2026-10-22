@@ -1,6 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import os
 from .q_val_frequentist_critical import q_val_frequentist_critical
 
 def compute_p_critLFC(binn, hiss):

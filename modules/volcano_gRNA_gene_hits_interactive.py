@@ -1,7 +1,5 @@
 import plotly.graph_objs as go
 import os
-import numpy as np
-import pandas as pd
 from plotly.subplots import make_subplots
 from .plot_volcano_interactive import plot_volcano_interactive
 from .perGene_med_horiz import perGene_med_horiz

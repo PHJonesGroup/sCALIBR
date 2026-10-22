@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from .make_histo_LFC import make_histo_LFC
 
 def computeZ(st, en, step, LFC_t, me_sd_z):
