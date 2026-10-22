@@ -43,9 +43,8 @@ def separate_target_control(step, T_norm_indiv,
     T_control : pandas.DataFrame
         Per-replicate LFC table for control_type (empty if that category is
         absent): [gRNA, gene, lfc_<rep>, ...].
-    groups : dict
-        Maps each gene_type value -> {'table': DataFrame, 'perc': 1-D ndarray}
-        for every category present in the data.
+    hist : numpy.ndarray
+        Target histogram counts, (n_bins, n_reps), one column per replicate.
     binn : numpy.ndarray
         Histogram bin edges (shared across all categories)
     st, en : float
@@ -103,4 +102,4 @@ def separate_target_control(step, T_norm_indiv,
         output_dir=output_dir,
     )
 
-    return T_target, T_control, hist, groups, binn, st, en
+    return T_target, T_control, hist, binn, st, en

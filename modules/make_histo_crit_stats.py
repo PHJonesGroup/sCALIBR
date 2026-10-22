@@ -31,18 +31,10 @@ def make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond1, plot_na
     -------
     bin_ : numpy.ndarray
         Histogram bin edges (left edges).
-    his : numpy.ndarray
-        Counts per bin of the pooled control LFCs.
-    perc : numpy.ndarray
-        Percentages per bin.
     bin_p : numpy.ndarray
         [bin, p] array (bin edges with the control p-curve).
     me_sd : numpy.ndarray
         [mean, SD] of the pooled control LFC.
-    Z : numpy.ndarray
-        Standard (mean/SD-based) Z-scores, one per pooled LFC value.
-    n : int
-        Number of finite pooled LFC values used.
     """
     # 1. Pool all replicate LFC columns
     lfc_cols = list(T_control.columns[3:])
@@ -52,7 +44,7 @@ def make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond1, plot_na
     LFC = LFC[np.isfinite(LFC)]                                 # drop NaN/inf
 
     # 2. Histogram of the pooled control LFCs
-    bin_, his, perc = make_histo_LFC(step, LFC, st, en)
+    bin_, his, _ = make_histo_LFC(step, LFC, st, en)
 
     # 3. p-curve
     bin_p = compute_p_critLFC(alf, bin_, his)
@@ -75,4 +67,4 @@ def make_histo_crit_stats(alf, st, en, step, T_control, baseline, cond1, plot_na
         color='b', xlab='LFC',
         save_name=f'distri_LFC_{control}_{plot_name}', output_dir=output_dir)
 
-    return bin_, his, perc, bin_p, me_sd, Z, len(LFC)
+    return bin_, bin_p, me_sd

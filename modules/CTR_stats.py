@@ -45,20 +45,13 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name,
     Returns
     -------
     me_sd : numpy.ndarray
-        'pooled': [mean, SD]. 'sample': (n_rep, 2), one row per replicate.
-    binn : numpy.ndarray
-        Histogram bin edges (shared across modes and replicates).
+        'pooled': [mean, SD]. 'sample': (n_rep, 2), one row per replicate,
+        in the order of the control table's lfc columns.
     p_cont : numpy.ndarray
-        'pooled': (n_bins,). 'sample': (n_bins, n_rep), one column per replicate.
-    hiss_cont : numpy.ndarray
-        Control histogram counts, same convention as p_cont.
-    p_targ : numpy.ndarray
-        Target p-curve (per-bin probability). 'pooled': (n_bins,).
-        'sample': (n_bins, n_rep), one column per replicate.
-    lfc_cols : list of str
-        The replicate LFC column names, in the order used for the per-replicate
-        axis of the arrays above (empty-meaning for 'pooled', but returned for
-        reference).
+        Control p-curve per bin. 'pooled': (n_bins,). 'sample': (n_bins, n_rep),
+        one column per replicate.
+
+    The target p-curve is computed here only for the saved plot and CSV.
     """
     lfc_cols = [c for c in T_control.columns if c.startswith('lfc')]
     if not lfc_cols:
@@ -66,27 +59,22 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name,
                          f"{T_control.columns.tolist()}")
 
     if norm_method == "pooled":
-        (binn, hiss_z, perc, bin_pz, me_sd, Z, n_z
-         ) = make_histo_crit_stats(alf, st, en, step, T_control,
-                                   baseline, cond, plot_name, control, output_dir)
+        binn, bin_pz, me_sd = make_histo_crit_stats(alf, st, en, step, T_control,
+                                                    baseline, cond, plot_name, control, output_dir)
         p_cont = bin_pz[:, 1]
-        hiss_cont = hiss_z
 
     elif norm_method == "sample":
-        p_list, hiss_list, mesd_list = [], [], []
+        p_list, mesd_list = [], []
         binn = None
         for col in lfc_cols:
             sub = T_control[list(T_control.columns[:3]) + [col]]
-            (binn, hiss_z, perc, bin_pz, me_sd_c,
-             Z, n_z) = make_histo_crit_stats(
+            binn, bin_pz, me_sd_c = make_histo_crit_stats(
                 alf, st, en, step, sub, baseline, cond,
                 f"{plot_name}_{col}", control, output_dir)
             p_list.append(bin_pz[:, 1])
-            hiss_list.append(hiss_z)
             mesd_list.append(me_sd_c)
 
         p_cont    = np.column_stack(p_list)       # (n_bins, n_rep)
-        hiss_cont = np.column_stack(hiss_list)
         me_sd     = np.vstack(mesd_list)          # (n_rep, 2)
 
     else:
@@ -135,4 +123,4 @@ def CTR_stats(alf, st, en, step, T_control, hist, baseline, cond, plot_name,
                 bbox_inches="tight")
     plt.close()
 
-    return me_sd, binn, p_cont, hiss_cont, p_targ, lfc_cols
+    return me_sd, p_cont

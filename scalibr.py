@@ -131,11 +131,11 @@ def main():
 
         # ============================ MODULE 2 ============================
         # Separate and show controls, NTs, zGE, and normalised counts distribution
-        T_target, T_control, hist, groups, bin, st, en = separate_target_control.separate_target_control(
+        T_target, T_control, hist, bin, st, en = separate_target_control.separate_target_control(
             step, norm_dat_filtered, target_type, control_type, baseline, cond1, name, c_outdir)
 
         # Control null: mean/SD and p-curve (pooled, or one per replicate)
-        (me_sd, binn, p_cont, hiss_cont, p_targ, ctrl_lfc_cols) = CTR_stats.CTR_stats(
+        me_sd, p_cont = CTR_stats.CTR_stats(
             alf, st, en, step, T_control, hist, baseline, cond1, name, control_type, norm_method, c_outdir)
 
         # pooled: me_sd is (2,); sample: (n_rep, 2) -> comma-separated per replicate
