@@ -25,8 +25,9 @@ def separate_target_control(step, T_norm_indiv,
         DataFrame [gRNA, gene, <normalised count columns>]
     target_type : str
         gene_type value denoting targets
-    control_type : str
-        gene_type value to calibrate on
+    control_type : str or list of str
+        gene_type value(s) to calibrate on. With several, their gRNAs are
+        pooled into one control set.
     baseline : str
         Baseline condition name / column prefix
     cond1 : str
@@ -41,8 +42,8 @@ def separate_target_control(step, T_norm_indiv,
     T_target : pandas.DataFrame
         Per-replicate LFC table for targets: [gRNA, gene, lfc_<rep>, ...].
     T_control : pandas.DataFrame
-        Per-replicate LFC table for control_type (empty if that category is
-        absent): [gRNA, gene, lfc_<rep>, ...].
+        Per-replicate LFC table for all control_type categories combined:
+        [gRNA, gene, gene_type, lfc_<rep>, ...].
     hist : numpy.ndarray
         Target histogram counts, (n_bins, n_reps), one column per replicate.
     binn : numpy.ndarray
@@ -61,10 +62,13 @@ def separate_target_control(step, T_norm_indiv,
         raise ValueError(f"target_type '{target_type}' not in {gene_type_column}. "
                          f"Available: {categories}")
 
-    control_present = control_type in categories
-    if not control_present:
-        print(f"[warning] control_type '{control_type}' not found in data "
-              f"(available: {categories}). No control group built for it.")
+    control_types = [control_type] if isinstance(control_type, str) else list(control_type)
+    if target_type in control_types:
+        raise ValueError(f"target_type '{target_type}' is also listed in control_type")
+    missing = [c for c in control_types if c not in categories]
+    if missing:
+        raise ValueError(f"control_type {missing} not found in {gene_type_column}. "
+                         f"Available: {categories}")
 
     # one per-rep LFC table per discovered category
     tables = {cat: lfc_table(T_norm_indiv[gt == cat], baseline, cond1)
@@ -90,7 +94,7 @@ def separate_target_control(step, T_norm_indiv,
 
     T_target  = groups[target_type]['table']
     hist = groups[target_type]['hiss']
-    T_control = groups[control_type]['table'] if control_present else pd.DataFrame(columns=['gRNA', 'gene'])
+    T_control = pd.concat([groups[c]['table'] for c in control_types], ignore_index=True)
 
     # plot: target + control + any other categories (skips None automatically)
     plot_categories = {cat: groups[cat]['perc'] for cat in categories}

@@ -67,7 +67,14 @@ def main():
         sys.exit(f"Config error: normalisation_method must be one of "
                  f"{sorted(valid_methods)}, got '{norm_method}'")
     target_type = config["target_type"]
-    control_type = config["control_type"]
+    control_type = config["control_type"]       # one gene_type, or a list to pool
+    if isinstance(control_type, str):
+        control_type = [control_type]
+    if (not isinstance(control_type, list) or not control_type
+            or not all(isinstance(c, str) for c in control_type)):
+        sys.exit(f"Config error: control_type must be a gene_type name or a list of them, "
+                 f"got {config['control_type']!r}")
+    control_label = " + ".join(control_type)    # used in plot titles, file names, stats
     step = config["step"]       # histogram range (st, en) is set per contrast from the LFCs
     thr_lfchz = config["thr_lfchz"]
     thr_lfcdz = -thr_lfchz
@@ -129,7 +136,7 @@ def main():
 
         # Control null: mean/SD and p-curve (pooled, or one per replicate)
         me_sd, p_cont = CTR_stats.CTR_stats(
-            st, en, step, T_control, hist, name, control_type, norm_method, c_outdir)
+            st, en, step, T_control, hist, name, control_label, norm_method, c_outdir)
 
         # pooled: me_sd is (2,); sample: (n_rep, 2) -> comma-separated per replicate
         me_sd_2d = np.atleast_2d(me_sd)
@@ -143,7 +150,7 @@ def main():
                 fh.write("contrast\tbaseline\ttreatment\tcontrol_type\tnorm_method\t"
                         "n_control_gRNA\tmean\tsd\n")
             fh.write(f"{name}\t{','.join(baseline)}\t{','.join(cond1)}\t"
-                    f"{control_type}\t{norm_method}\t{len(T_control)}\t"
+                    f"{control_label}\t{norm_method}\t{len(T_control)}\t"
                     f"{mean_str}\t{sd_str}\n")
             
         # Get recalibrated p/q values for gRNAs
