@@ -7,7 +7,7 @@ import argparse
 import sys
 from importlib.metadata import version, PackageNotFoundError
 
-from modules import plot_grna_distribution
+from modules import run_log, plot_grna_distribution
 from modules import normalise_total, plot_gene_variability, plot_pca, plot_heatmap
 from modules import norm_table_individ, plot_mean_median
 from modules import separate_target_control
@@ -82,8 +82,22 @@ def main():
     sfdr_corr = 0.0001 # constant to avoid log10(0)
     ssc     = 1 # small sample correction count
 
+    # Record this run's settings in <output_dir>/run_log_<timestamp>.txt
+    log = run_log.RunLog(output_dir, args.config, __version__)
+    log.section("Settings")
+    log.field("normalisation_method", norm_method)
+    log.field("target_type", target_type)
+    log.field("control_type", f"{control_label} ({len(control_type)} type(s) pooled)")
+    log.field("keep_counts", keep_counts)
+    log.field("alf", alf)
+    log.field("thr_lfchz / thr_lfcdz", f"{thr_lfchz} / {thr_lfcdz}")
+    log.field("step", step)
+    log.field("Histogram range", "set per contrast from the data (see Contrasts)")
+    log.field("Fixed constants", f"sfdr_corr = {sfdr_corr}, ssc = {ssc}")
+
     # ============================ MODULE 1 ============================
     T_vert = pd.read_csv(input_counts)
+    log.input_file(input_counts, T_vert)
     gene_names = T_vert.iloc[:, 1]  # second column (gene names)
 
     # Number of gRNAs per gene/intergenic name, counted over the whole file
@@ -93,6 +107,10 @@ def main():
     # Removes genes with incorrect number of gRNAs
     keep_rows = gene_names.map(grna_per_gene).isin(keep_counts)
     T_vert_f = T_vert[keep_rows].reset_index(drop=True)
+    log.field("Kept by keep_counts", f"{len(T_vert_f)} of {len(T_vert)} gRNAs "
+                                     f"({grna_per_gene.isin(keep_counts).sum()} genes)")
+    log.config_text()
+    log.section("Contrasts")
     plot_pca.plot_pca(T_vert_f, output_dir, name="raw")
 
     # Normalise counts within a sample
@@ -108,7 +126,7 @@ def main():
         cond1    = contrast["treatment"]
 
         if len(baseline) != len(cond1):
-            sys.exit(f"Contrast {name}: baseline and cond1 must have equal length")
+            log.stop(f"Contrast {name}: baseline and cond1 must have equal length")
 
         c_outdir = output_dir / name
         c_outdir.mkdir(parents=True, exist_ok=True)
@@ -137,6 +155,9 @@ def main():
         # Control null: mean/SD and p-curve (pooled, or one per replicate)
         me_sd, p_cont = CTR_stats.CTR_stats(
             st, en, step, T_control, hist, name, control_label, norm_method, c_outdir)
+        log.write(f"{name}: {', '.join(baseline)} -> {', '.join(cond1)} | "
+                  f"{len(T_target)} target, {len(T_control)} control gRNAs | "
+                  f"histogram range [{st}, {en}]")
 
         # pooled: me_sd is (2,); sample: (n_rep, 2) -> comma-separated per replicate
         me_sd_2d = np.atleast_2d(me_sd)
@@ -187,6 +208,8 @@ def main():
 
         T_gRNA.to_csv(os.path.join(c_outdir, f"volcano_{name}_grna.csv"), index=False)
         T_gene.to_csv(os.path.join(c_outdir, f"volcano_{name}_gene.csv"), index=False)
+
+    log.finish()
 
 if __name__ == "__main__":
     main()

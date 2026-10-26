@@ -123,6 +123,7 @@ For the pipeline to run correctly, the input count file must follow this exact c
 | `normalised_counts_mean_med.png`                      | Mean versus median of the normalised gRNA counts for each of condition                                                            | 
 | `normalised_counts.csv`                               | Normalised counts in csv format                                                                                                   | 
 | `p_distri_targ_cont_{contrast_name}.png`              | Control-calibrated p-value curves of target vs control gRNAs                                                                      | 
+| `run_log_{YYYYmmdd_HHMMSS}.txt`                       | One per run: settings, config as written, input checksum, code version, per-contrast histogram range, and whether the run completed | 
 | `target_{contrast_name}_gRNA.csv`                     | LFC, Z-corrected LFC, q-value, condition table for target genes                                                                   | 
 | `volcano_gRNA_{contrast_name}.png`                    | Volcano plot on gRNA and gene level                                                                                               | 
 | `volcano_plot_interactive_{contrast_name}.html`       | Interactive volcano plot on gRNA and gene  CSV                                                                                    | 
