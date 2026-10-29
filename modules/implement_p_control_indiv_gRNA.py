@@ -17,7 +17,9 @@ def implement_p_control_indiv_gRNA(T_gRNA_LFC, binn, p_cont):
     Returns
     -------
     out : pandas.DataFrame
-            [gRNA, gene, lfc(_<rep>)..., Q(_<rep>)...] with control-calibrated q-values.
+            [gRNA, gene, gene_type, lfc(_<rep>), p(_<rep>), ...] with the
+            control-calibrated empirical p-value of each gRNA (not corrected
+            for multiple testing).
     """
     lfc_cols = [c for c in T_gRNA_LFC.columns if c.startswith('lfc')]
 
@@ -44,6 +46,6 @@ def implement_p_control_indiv_gRNA(T_gRNA_LFC, binn, p_cont):
             qq[idx] = p_col[i]
 
         out[f'lfc{suffix}'] = LFC
-        out[f'Q{suffix}']   = qq
+        out[f'p{suffix}']   = qq
 
     return out

@@ -20,14 +20,15 @@ def volcano_gRNA_gene_hits_interactive(
     Parameters
     ----------
     alf : float
-        q-value significance threshold for hit calling.
+        Significance threshold for hit calling: on the raw gRNA p-value in the
+        gRNA panel, on the BH q-value in the gene panel.
     sfdr_corr : float
-        Pseudocount added to q-value before -log10 (avoids log10(0)).
+        Pseudocount added to p / q before -log10 (avoids log10(0)).
     thr_lfchz, thr_lfcdz : float
         Right / left critical thresholds on the normalised LFC scale.
     T_vert : pandas.DataFrame
         Per-gRNA table: [gRNA, gene, gene_type, lfc(_<rep>)...,
-        normalised_lfc(_<rep>)..., Q(_<rep>)...].
+        normalised_lfc(_<rep>)..., p(_<rep>)...]; p = raw empirical gRNA p-value.
     plot_name : str
         Contrast name, used in the title and output filename.
     output_dir : str
@@ -45,7 +46,7 @@ def volcano_gRNA_gene_hits_interactive(
     genes = T_vert['gene']
 
     scoreZ = collapse_table(T_vert, prefix="normalised_lfc", exact="normalised_lfc")
-    fdr    = collapse_table(T_vert, prefix="Q",              exact="Q")
+    pval   = collapse_table(T_vert, prefix="p_",             exact="p")
 
     fig = make_subplots(rows=1, cols=2, subplot_titles=(
         "Volcano per gRNA",
@@ -75,7 +76,7 @@ def volcano_gRNA_gene_hits_interactive(
 
     # --- Left: per-gRNA Z ---
     _, _, _, T_ds, T_hs, T_gRNA = plot_volcano_interactive(
-        alf, sfdr_corr, thr_lfchz, thr_lfcdz, scoreZ, fdr, genes, grnas)
+        alf, sfdr_corr, thr_lfchz, thr_lfcdz, scoreZ, pval, genes, grnas)
     add_volcano(T_gRNA, T_hs, T_ds, row=1, col=1, label="gRNA", show_legend=True)
 
     # --- per-gene aggregation ---
@@ -91,9 +92,9 @@ def volcano_gRNA_gene_hits_interactive(
     else:
         print("No per-gene data available, skipping gene volcano plot")
 
-    for c in (1, 2):
+    for c, y_title in ((1, "-log10(p-value)"), (2, "-log10(q-value)")):
         fig.update_xaxes(title_text="Normalised LFC", row=1, col=c)
-        fig.update_yaxes(title_text="-log10(q-value)", row=1, col=c)
+        fig.update_yaxes(title_text=y_title, row=1, col=c)
 
     fig.update_layout(title=f"{plot_name}", showlegend=True)
     fig.write_html(

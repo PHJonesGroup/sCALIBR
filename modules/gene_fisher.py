@@ -39,10 +39,10 @@ def fisher_combine(p, scale_factor=1/3):
 
 
 def _rep_suffixes(T_vert):
-    """Replicate suffixes shared by the normalised_lfc and Q columns ('' or '_<rep>')."""
-    sfx = [c[len('Q'):] for c in T_vert.columns if c == 'Q' or c.startswith('Q_')]
+    """Replicate suffixes shared by the normalised_lfc and p columns ('' or '_<rep>')."""
+    sfx = [c[len('p'):] for c in T_vert.columns if c == 'p' or c.startswith('p_')]
     if not sfx:
-        raise KeyError(f"No Q columns. Columns: {T_vert.columns.tolist()}")
+        raise KeyError(f"No p columns. Columns: {T_vert.columns.tolist()}")
     return sfx
 
 
@@ -79,7 +79,8 @@ def gene_fisher(T_vert, norm_method="pooled", scale_factor=1/3):
     ----------
     T_vert : pandas.DataFrame
         Per-gRNA table [gRNA, gene, gene_type, lfc(_<rep>)...,
-        normalised_lfc(_<rep>)..., Q(_<rep>)...], targets only.
+        normalised_lfc(_<rep>)..., p(_<rep>)...], targets only; p = raw
+        empirical gRNA p-value.
     norm_method : {'pooled', 'sample'}
         Aggregation mode, as above.
     scale_factor : float
@@ -96,7 +97,7 @@ def gene_fisher(T_vert, norm_method="pooled", scale_factor=1/3):
     sfx = _rep_suffixes(T_vert)
 
     if norm_method == "pooled":
-        out = _per_gene(T_vert, [f'normalised_lfc{s}' for s in sfx], [f'Q{s}' for s in sfx],
+        out = _per_gene(T_vert, [f'normalised_lfc{s}' for s in sfx], [f'p{s}' for s in sfx],
                         scale_factor)
         out['q'] = bh_adjust(out['fisher_p'])
         return out[['gene', 'normalised_lfc', 'fisher_p', 'q', 'n_p']]
@@ -106,7 +107,7 @@ def gene_fisher(T_vert, norm_method="pooled", scale_factor=1/3):
 
     per_rep = []
     for s in sfx:
-        r = _per_gene(T_vert, [f'normalised_lfc{s}'], [f'Q{s}'], scale_factor)
+        r = _per_gene(T_vert, [f'normalised_lfc{s}'], [f'p{s}'], scale_factor)
         r[f'q{s}'] = bh_adjust(r['fisher_p'])
         per_rep.append(r.rename(columns={'normalised_lfc': f'normalised_lfc{s}',
                                          'fisher_p': f'fisher_p{s}'})
@@ -114,7 +115,7 @@ def gene_fisher(T_vert, norm_method="pooled", scale_factor=1/3):
     wide = pd.concat(per_rep, axis=1)
 
     # final result: Fisher once over all raw gRNA p-values of the gene, every sample
-    out = _per_gene(T_vert, [f'normalised_lfc{s}' for s in sfx], [f'Q{s}' for s in sfx],
+    out = _per_gene(T_vert, [f'normalised_lfc{s}' for s in sfx], [f'p{s}' for s in sfx],
                     scale_factor)
     out['normalised_lfc'] = wide[[f'normalised_lfc{s}' for s in sfx]].median(axis=1).reindex(out['gene']).to_numpy()
     out['q'] = bh_adjust(out['fisher_p'])

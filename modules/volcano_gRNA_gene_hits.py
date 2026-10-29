@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import os
 import numpy as np
-import pandas as pd
 import matplotlib as mpl
 mpl.rcParams['pdf.fonttype'] = 42
 mpl.rcParams['ps.fonttype'] = 42
@@ -26,14 +25,15 @@ def volcano_gRNA_gene_hits(alf, sfdr_corr, thr_lfchz, thr_lfcdz,
     Parameters
     ----------
     alf : float
-        q-value significance threshold for hit calling.
+        Significance threshold for hit calling: on the raw gRNA p-value in the
+        gRNA panel, on the BH q-value in the gene panel.
     sfdr_corr : float
-        Pseudocount added to q-value before -log10 (avoids log10(0) on the y-axis).
+        Pseudocount added to p / q before -log10 (avoids log10(0) on the y-axis).
     thr_lfchz, thr_lfcdz : float
         Right / left critical thresholds on the normalised lfc scale.
     T_vert : pandas.DataFrame
         Per-gRNA table: [gRNA, gene, gene_type, lfc(_<rep>)...,
-        normalised_lfc(_<rep>)..., Q(_<rep>)...].
+        normalised_lfc(_<rep>)..., p(_<rep>)...]; p = raw empirical gRNA p-value.
     plot_name : str
         Contrast name, used in the title and output filename.
     output_dir : str
@@ -46,8 +46,8 @@ def volcano_gRNA_gene_hits(alf, sfdr_corr, thr_lfchz, thr_lfcdz,
     Returns
     -------
     T_gRNA : pandas.DataFrame
-        Per-gRNA table [gRNA, gene, normalised_lfc, q]: replicate-median
-        normalised LFC and q-value.
+        Per-gRNA table [gRNA, gene, normalised_lfc, p]: replicate-median
+        normalised LFC and raw p-value (not corrected for multiple testing).
     T_gene : pandas.DataFrame
         Per-gene table from gene_fisher: [gene, normalised_lfc, fisher_p, q, ...]
         (per-replicate columns too in 'sample' mode); empty if there are no genes.
@@ -57,35 +57,35 @@ def volcano_gRNA_gene_hits(alf, sfdr_corr, thr_lfchz, thr_lfcdz,
 
     # collapse replicates to one value per gRNA
     scoreZ = collapse_table(T_vert, prefix="normalised_lfc", exact="normalised_lfc")
-    fdr    = collapse_table(T_vert, prefix="Q",              exact="Q")
+    pval   = collapse_table(T_vert, prefix="p_",             exact="p")
 
     # --- per-gene aggregation ---
     T_gene = gene_fisher(T_vert, norm_method, fisher_scale_factor)
 
     # final volcano (all samples)
     T_gRNA = _volcano_figure(alf, sfdr_corr, thr_lfchz, thr_lfcdz,
-                             scoreZ, fdr, genes, grnas, T_gene,
+                             scoreZ, pval, genes, grnas, T_gene,
                              'normalised_lfc', 'q', plot_name,
                              os.path.join(output_dir, f"volcano_{plot_name}.pdf"))
 
     # sample mode: one volcano per sample, from that sample's gRNA and gene values
     if norm_method == "sample" and not T_gene.empty:
-        for sfx in [c[len('Q'):] for c in T_vert.columns if c.startswith('Q_')]:
+        for sfx in [c[len('p'):] for c in T_vert.columns if c.startswith('p_')]:
             _volcano_figure(alf, sfdr_corr, thr_lfchz, thr_lfcdz,
-                            T_vert[f'normalised_lfc{sfx}'], T_vert[f'Q{sfx}'], genes, grnas,
+                            T_vert[f'normalised_lfc{sfx}'], T_vert[f'p{sfx}'], genes, grnas,
                             T_gene, f'normalised_lfc{sfx}', f'q{sfx}',
                             f"{plot_name} ({sfx.lstrip('_')})",
                             os.path.join(output_dir, f"volcano_{plot_name}{sfx}.pdf"))
 
-    # output tables: raw q-value (without the plotting pseudocount)
+    # output tables: raw gRNA p-value (without the plotting pseudocount)
     T_gRNA = (T_gRNA.drop(columns='fdr_corr')
                     .rename(columns={'score': 'normalised_lfc'})
-                    .assign(q=np.asarray(fdr, dtype=float)))
+                    .assign(p=np.asarray(pval, dtype=float)))
 
     return T_gRNA, T_gene
 
 
-def _volcano_figure(alf, sfdr_corr, thr_lfchz, thr_lfcdz, scoreZ, fdr, genes, grnas,
+def _volcano_figure(alf, sfdr_corr, thr_lfchz, thr_lfcdz, scoreZ, pval, genes, grnas,
                     T_gene, gene_lfc_col, gene_q_col, title, path):
     """Two-panel volcano (per gRNA, per gene) saved to path; returns the gRNA table."""
     fig, axs = plt.subplots(1, 2, figsize=(14, 6))
@@ -94,8 +94,9 @@ def _volcano_figure(alf, sfdr_corr, thr_lfchz, thr_lfcdz, scoreZ, fdr, genes, gr
     # --- Left: per-gRNA Z ---
     T_gRNA = plot_volcano(
         alf, sfdr_corr, thr_lfchz, thr_lfcdz,
-        scoreZ, fdr, genes, ax=axs[0], grna=grnas)
+        scoreZ, pval, genes, ax=axs[0], grna=grnas)
     axs[0].set_xlabel('Normalised LFC', fontsize=14)
+    axs[0].set_ylabel('-log10(p-value)', fontsize=14)
     axs[0].set_title('Volcano per gRNA', fontsize=16)
 
     if not T_gene.empty:

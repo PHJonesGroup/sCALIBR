@@ -19,7 +19,8 @@ def p_control_target_implement(T_target, T_control, binn, p_cont):
     Returns
     -------
     T_q_verti : pandas.DataFrame
-            [gRNA, gene, lfc(_<rep>)..., Q(_<rep>)...] with control-calibrated q-values.
+            [gRNA, gene, gene_type, lfc(_<rep>), p(_<rep>), ...] with control-calibrated
+            empirical p-values (not corrected for multiple testing).
     """
     # Concatenate tables vertically 
     T_target_T_control = pd.concat([T_target, T_control], ignore_index=True)
