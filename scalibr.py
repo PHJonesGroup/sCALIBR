@@ -96,7 +96,8 @@ def main():
     log.field("Histogram range", "set per contrast from the data (see Contrasts)")
     log.field("Fixed constants", f"sfdr_corr = {sfdr_corr}, ssc = {ssc}")
     log.field("Gene-level test", "median normalised LFC; Fisher's method on gRNA p-values, "
-              "BH across target genes" + (" (per replicate, then replicates pooled by Fisher)"
+              "BH across target genes" + ("; per sample, and a final result with Fisher's "
+                                          "method once over all samples' raw gRNA p-values"
                                           if norm_method == "sample" else ""))
     log.field("fisher_scale_factor", fisher_scale_factor)
 
