@@ -77,6 +77,7 @@ def main():
     control_label = " + ".join(control_type)    # used in plot titles, file names, stats
     step = config["step"]       # histogram range (st, en) is set per contrast from the LFCs
     thr_lfchz = config["thr_lfchz"]
+    fisher_scale_factor = config.get("fisher_scale_factor", 1/3)   # gene-level Fisher's method
     thr_lfcdz = -thr_lfchz
 
     sfdr_corr = 0.0001 # constant to avoid log10(0)
@@ -94,6 +95,10 @@ def main():
     log.field("step", step)
     log.field("Histogram range", "set per contrast from the data (see Contrasts)")
     log.field("Fixed constants", f"sfdr_corr = {sfdr_corr}, ssc = {ssc}")
+    log.field("Gene-level test", "median normalised LFC; Fisher's method on gRNA p-values, "
+              "BH across target genes" + (" (per replicate, then replicates pooled by Fisher)"
+                                          if norm_method == "sample" else ""))
+    log.field("fisher_scale_factor", fisher_scale_factor)
 
     # ============================ MODULE 1 ============================
     T_vert = pd.read_csv(input_counts)
@@ -201,10 +206,10 @@ def main():
         # -------------------- 2.5 --------------------
         # Find extreme sets (enriched/ depleted) and volcano for gRNA and gene
         T_gRNA, T_gene = volcano_gRNA_gene_hits.volcano_gRNA_gene_hits(
-            alf, sfdr_corr, thr_lfchz, thr_lfcdz, T_t, name, c_outdir, norm_method)
+            alf, sfdr_corr, thr_lfchz, thr_lfcdz, T_t, name, c_outdir, norm_method, fisher_scale_factor)
 
         volcano_gRNA_gene_hits_interactive.volcano_gRNA_gene_hits_interactive(
-            alf, sfdr_corr, thr_lfchz, thr_lfcdz, T_t, name, c_outdir, norm_method)
+            alf, sfdr_corr, thr_lfchz, thr_lfcdz, T_t, name, c_outdir, norm_method, fisher_scale_factor)
 
         T_gRNA.to_csv(os.path.join(c_outdir, f"volcano_{name}_grna.csv"), index=False)
         T_gene.to_csv(os.path.join(c_outdir, f"volcano_{name}_gene.csv"), index=False)

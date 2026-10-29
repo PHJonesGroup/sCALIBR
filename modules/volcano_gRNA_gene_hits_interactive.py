@@ -2,19 +2,20 @@ import plotly.graph_objs as go
 import os
 from plotly.subplots import make_subplots
 from .plot_volcano_interactive import plot_volcano_interactive
-from .perGene_med_horiz import perGene_med_horiz
+from .gene_fisher import gene_fisher
 from .collapse_table import collapse_table
 
 
 def volcano_gRNA_gene_hits_interactive(
     alf, sfdr_corr, thr_lfchz, thr_lfcdz,
-    T_vert, plot_name, output_dir, norm_method="pooled"
+    T_vert, plot_name, output_dir, norm_method="pooled", fisher_scale_factor=1/3
 ):
     """
     Draw interactive per-gRNA and per-gene Z volcano plots and write them as HTML.
 
     Panels: per-gRNA Z (left), per-gene Z (right). Replicate columns are collapsed to a per-gRNA median before
-    plotting; per-gene values come from perGene_med_horiz.
+    plotting; per-gene values come from gene_fisher (median normalised LFC,
+    Fisher-combined p, BH across genes).
 
     Parameters
     ----------
@@ -32,7 +33,9 @@ def volcano_gRNA_gene_hits_interactive(
     output_dir : str
         Directory where the HTML figure is saved.
     norm_method : {'pooled', 'sample'}, optional
-        Gene-level aggregation mode, passed to perGene_med_horiz.
+        Gene-level aggregation mode, passed to gene_fisher.
+    fisher_scale_factor : float, optional
+        Scale factor for Fisher's method, passed to gene_fisher.
 
     Returns
     -------
@@ -76,14 +79,14 @@ def volcano_gRNA_gene_hits_interactive(
     add_volcano(T_gRNA, T_hs, T_ds, row=1, col=1, label="gRNA", show_legend=True)
 
     # --- per-gene aggregation ---
-    T_lfc_z_q_med = perGene_med_horiz(T_vert, norm_method)
+    T_gene = gene_fisher(T_vert, norm_method, fisher_scale_factor)
 
-    if not T_lfc_z_q_med.empty:
+    if not T_gene.empty:
         # --- Right: per-gene Z ---
         _, _, _, T_ds2, T_hs2, T_gene2 = plot_volcano_interactive(
             alf, sfdr_corr, thr_lfchz, thr_lfcdz,
-            T_lfc_z_q_med['median_normalised_LFC'].values,
-            T_lfc_z_q_med['median_q'].values, T_lfc_z_q_med['genes'].values)
+            T_gene['normalised_lfc'].values,
+            T_gene['q'].values, T_gene['gene'].values)
         add_volcano(T_gene2, T_hs2, T_ds2, row=1, col=2, label="gene", show_legend=False)
     else:
         print("No per-gene data available, skipping gene volcano plot")
