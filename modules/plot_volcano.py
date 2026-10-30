@@ -1,14 +1,14 @@
 import numpy as np
 import pandas as pd
 
-def plot_volcano(alf, sfdr_corr, thr_scoreh, thr_scored, score, fdr, genes, ax=None, grna=None):
+def plot_volcano(significance_threshold, sfdr_corr, thr_scoreh, thr_scored, score, fdr, genes, ax=None, grna=None):
     """
     Draw a single volcano panel and identify enriched / depleted hits.
 
     Parameters
     ----------
-    alf : float
-        q-value significance threshold for hit calling.
+    significance_threshold : float
+        Hit threshold on the y-axis values (raw p for gRNAs, BH q for genes).
     sfdr_corr : float
         Pseudocount added to qvalue before -log10 (avoids log10(0)).
     thr_scoreh : float
@@ -31,7 +31,7 @@ def plot_volcano(alf, sfdr_corr, thr_scoreh, thr_scored, score, fdr, genes, ax=N
     T_gene : pandas.DataFrame
         All points as [gene, score, fdr_corr].
     """
-    thr_fdr = alf
+    thr_fdr = significance_threshold
     fdr_corr = fdr + sfdr_corr  # Avoid log10(0)
     LPV = -np.log10(fdr_corr)
 

@@ -3,7 +3,7 @@
 input_counts    : "data/crispr_raw_counts.csv"
 output_dir      : "output/"
 keep_counts     : [1, 4]                        #number of gRNAs expected per genes
-alf             : 0.06                          # significance level of right-left tail of distribution
+significance_threshold : 0.05                                # hit threshold: raw p for gRNAs, BH q (Fisher) for genes
 
 # Patterns for filtering 
 target_type     : 'GOI'    

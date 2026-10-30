@@ -54,12 +54,12 @@ To run on your own data:
 | `input_counts`    | Path to the counts CSV                                    | `demo_data/WT_....csv`                |
 | `output_dir`      | Directory where results are written                       | `output`                              |
 | `keep_counts`     | Number of gRNAs per gene                                  | `[1, 4, 10]`                          |
-| `alf`             | Significance level (tail of the distribution)             | `0.06`                                |
 | `target_type`     | Choice of target genes                                    | `GOI`                                 |
 | `control_type`    | Control gene type(s) ; a list (e.g. `['Neutral expressed gene', 'Zero-expressed gene']`) pools them into one control set | `Zero-expressed genes`|
 | `contrasts`       | List of contrasts to run; each has a `name`, and `baseline`/`treatment` with lists of replicates (if present) | see below          |
 | `step`            | Bin sizes for histograms                                  | `0.05`                                |
 | `thr_lfchz`       | LFC threshold for volcano plot                            | `2`                                 |
+| `significance_threshold` | Hit threshold: raw p-value for gRNAs, BH-adjusted Fisher p (q) for genes | `0.05` |
 
 #### Contrasts
 

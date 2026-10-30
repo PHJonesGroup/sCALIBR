@@ -10,7 +10,7 @@ from .gene_fisher import gene_fisher
 from .collapse_table import collapse_table
 
 
-def volcano_gRNA_gene_hits(alf, sfdr_corr, thr_lfchz, thr_lfcdz,
+def volcano_gRNA_gene_hits(significance_threshold, sfdr_corr, thr_lfchz, thr_lfcdz,
                            T_vert, plot_name, output_dir,
                            norm_method="pooled", fisher_scale_factor=1/3):
     """
@@ -24,7 +24,7 @@ def volcano_gRNA_gene_hits(alf, sfdr_corr, thr_lfchz, thr_lfcdz,
 
     Parameters
     ----------
-    alf : float
+    significance_threshold : float
         Significance threshold for hit calling: on the raw gRNA p-value in the
         gRNA panel, on the BH q-value in the gene panel.
     sfdr_corr : float
@@ -63,7 +63,7 @@ def volcano_gRNA_gene_hits(alf, sfdr_corr, thr_lfchz, thr_lfcdz,
     T_gene = gene_fisher(T_vert, norm_method, fisher_scale_factor)
 
     # final volcano (all samples)
-    T_gRNA = _volcano_figure(alf, sfdr_corr, thr_lfchz, thr_lfcdz,
+    T_gRNA = _volcano_figure(significance_threshold, sfdr_corr, thr_lfchz, thr_lfcdz,
                              scoreZ, pval, genes, grnas, T_gene,
                              'normalised_lfc', 'q', plot_name,
                              os.path.join(output_dir, f"volcano_{plot_name}.pdf"))
@@ -71,7 +71,7 @@ def volcano_gRNA_gene_hits(alf, sfdr_corr, thr_lfchz, thr_lfcdz,
     # sample mode: one volcano per sample, from that sample's gRNA and gene values
     if norm_method == "sample" and not T_gene.empty:
         for sfx in [c[len('p'):] for c in T_vert.columns if c.startswith('p_')]:
-            _volcano_figure(alf, sfdr_corr, thr_lfchz, thr_lfcdz,
+            _volcano_figure(significance_threshold, sfdr_corr, thr_lfchz, thr_lfcdz,
                             T_vert[f'normalised_lfc{sfx}'], T_vert[f'p{sfx}'], genes, grnas,
                             T_gene, f'normalised_lfc{sfx}', f'q{sfx}',
                             f"{plot_name} ({sfx.lstrip('_')})",
@@ -85,7 +85,7 @@ def volcano_gRNA_gene_hits(alf, sfdr_corr, thr_lfchz, thr_lfcdz,
     return T_gRNA, T_gene
 
 
-def _volcano_figure(alf, sfdr_corr, thr_lfchz, thr_lfcdz, scoreZ, pval, genes, grnas,
+def _volcano_figure(significance_threshold, sfdr_corr, thr_lfchz, thr_lfcdz, scoreZ, pval, genes, grnas,
                     T_gene, gene_lfc_col, gene_q_col, title, path):
     """Two-panel volcano (per gRNA, per gene) saved to path; returns the gRNA table."""
     fig, axs = plt.subplots(1, 2, figsize=(14, 6))
@@ -93,7 +93,7 @@ def _volcano_figure(alf, sfdr_corr, thr_lfchz, thr_lfcdz, scoreZ, pval, genes, g
 
     # --- Left: per-gRNA Z ---
     T_gRNA = plot_volcano(
-        alf, sfdr_corr, thr_lfchz, thr_lfcdz,
+        significance_threshold, sfdr_corr, thr_lfchz, thr_lfcdz,
         scoreZ, pval, genes, ax=axs[0], grna=grnas)
     axs[0].set_xlabel('Normalised LFC', fontsize=14)
     axs[0].set_ylabel('-log10(p-value)', fontsize=14)
@@ -102,7 +102,7 @@ def _volcano_figure(alf, sfdr_corr, thr_lfchz, thr_lfcdz, scoreZ, pval, genes, g
     if not T_gene.empty:
         # --- Right: per-gene Z ---
         plot_volcano(
-            alf, sfdr_corr, thr_lfchz, thr_lfcdz,
+            significance_threshold, sfdr_corr, thr_lfchz, thr_lfcdz,
             T_gene[gene_lfc_col].values,
             T_gene[gene_q_col].values, T_gene['gene'].values,
             ax=axs[1])

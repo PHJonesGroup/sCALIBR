@@ -7,7 +7,7 @@ from .collapse_table import collapse_table
 
 
 def volcano_gRNA_gene_hits_interactive(
-    alf, sfdr_corr, thr_lfchz, thr_lfcdz,
+    significance_threshold, sfdr_corr, thr_lfchz, thr_lfcdz,
     T_vert, plot_name, output_dir, norm_method="pooled", fisher_scale_factor=1/3
 ):
     """
@@ -19,7 +19,7 @@ def volcano_gRNA_gene_hits_interactive(
 
     Parameters
     ----------
-    alf : float
+    significance_threshold : float
         Significance threshold for hit calling: on the raw gRNA p-value in the
         gRNA panel, on the BH q-value in the gene panel.
     sfdr_corr : float
@@ -76,7 +76,7 @@ def volcano_gRNA_gene_hits_interactive(
 
     # --- Left: per-gRNA Z ---
     _, _, _, T_ds, T_hs, T_gRNA = plot_volcano_interactive(
-        alf, sfdr_corr, thr_lfchz, thr_lfcdz, scoreZ, pval, genes, grnas)
+        significance_threshold, sfdr_corr, thr_lfchz, thr_lfcdz, scoreZ, pval, genes, grnas)
     add_volcano(T_gRNA, T_hs, T_ds, row=1, col=1, label="gRNA", show_legend=True)
 
     # --- per-gene aggregation ---
@@ -85,7 +85,7 @@ def volcano_gRNA_gene_hits_interactive(
     if not T_gene.empty:
         # --- Right: per-gene Z ---
         _, _, _, T_ds2, T_hs2, T_gene2 = plot_volcano_interactive(
-            alf, sfdr_corr, thr_lfchz, thr_lfcdz,
+            significance_threshold, sfdr_corr, thr_lfchz, thr_lfcdz,
             T_gene['normalised_lfc'].values,
             T_gene['q'].values, T_gene['gene'].values)
         add_volcano(T_gene2, T_hs2, T_ds2, row=1, col=2, label="gene", show_legend=False)

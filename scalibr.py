@@ -60,7 +60,7 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True) 
 
     keep_counts = config["keep_counts"]
-    alf = config["alf"]
+    significance_threshold = config["significance_threshold"]
     norm_method = config["normalisation_method"]
     valid_methods = {"sample", "pooled"}
     if norm_method not in valid_methods:
@@ -90,7 +90,7 @@ def main():
     log.field("target_type", target_type)
     log.field("control_type", f"{control_label} ({len(control_type)} type(s) pooled)")
     log.field("keep_counts", keep_counts)
-    log.field("alf", alf)
+    log.field("significance_threshold", significance_threshold)
     log.field("thr_lfchz / thr_lfcdz", f"{thr_lfchz} / {thr_lfcdz}")
     log.field("step", step)
     log.field("Histogram range", "set per contrast from the data (see Contrasts)")
@@ -207,10 +207,10 @@ def main():
         # -------------------- 2.5 --------------------
         # Find extreme sets (enriched/ depleted) and volcano for gRNA and gene
         T_gRNA, T_gene = volcano_gRNA_gene_hits.volcano_gRNA_gene_hits(
-            alf, sfdr_corr, thr_lfchz, thr_lfcdz, T_t, name, c_outdir, norm_method, fisher_scale_factor)
+            significance_threshold, sfdr_corr, thr_lfchz, thr_lfcdz, T_t, name, c_outdir, norm_method, fisher_scale_factor)
 
         volcano_gRNA_gene_hits_interactive.volcano_gRNA_gene_hits_interactive(
-            alf, sfdr_corr, thr_lfchz, thr_lfcdz, T_t, name, c_outdir, norm_method, fisher_scale_factor)
+            significance_threshold, sfdr_corr, thr_lfchz, thr_lfcdz, T_t, name, c_outdir, norm_method, fisher_scale_factor)
 
         T_gRNA.to_csv(os.path.join(c_outdir, f"volcano_{name}_grna.csv"), index=False)
         T_gene.to_csv(os.path.join(c_outdir, f"volcano_{name}_gene.csv"), index=False)
