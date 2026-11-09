@@ -4,15 +4,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.patches import Patch
+from matplotlib.lines import Line2D
 from scipy.stats import spearmanr, mannwhitneyu
 mpl.rcParams['pdf.fonttype'] = 42
 mpl.rcParams['ps.fonttype'] = 42
 
-# Flag thresholds. Absolute Gini guides (MAGeCK-VISPR, Li et al. 2015: <= 0.1 for
-# plasmid/T0, <= 0.2 later) are for genome-wide libraries and flag every sample of a
-# small targeted library, so Gini and depth are judged against similar samples
-# (baseline or not) instead. Replicate-level thresholds are relative to the other
-# replicates of the contrast.
 MAX_ZERO_FRAC_BASELINE = 0.01    # zero-count gRNAs in baseline (T0/plasmid) samples
 MAX_GINI_RATIO         = 1.5     # Gini vs median Gini of the other samples in its group
 MIN_DEPTH_RATIO        = 0.5     # reads per gRNA vs median of the other samples in its group
@@ -180,23 +176,35 @@ def _plot(m, name, output_dir):
     axs[1].bar(x, v, color=np.where(v > MAX_CTRL_TARGET_SD, bad, ok))
     axs[1].axhline(MAX_CTRL_TARGET_SD, ls="--", c="grey", lw=1)
     axs[1].set_title("Control SD / target SD")
+    axs[1].set_ylim([0,1])
 
     w = 0.38
     gap = (m["signal_gap"] < MIN_SIGNAL_GAP).to_numpy()
-    axs[2].bar(x - w / 2, m["loo_spearman_targets"], w, color=np.where(gap, bad, "#377EB8"))
+    axs[2].bar(x - w / 2, m["loo_spearman_targets"], w, color=np.where(gap, bad, ok))
     axs[2].bar(x + w / 2, m["loo_spearman_controls"], w, color="#888780")
     axs[2].axhline(0, c="grey", lw=0.5)
     axs[2].set_title("Leave-one-out Spearman ρ")
-    axs[2].legend(handles=[Patch(color="#377EB8", label="targets"),
-                           Patch(color="#888780", label="controls")],
-                  fontsize=9, frameon=False)
+
+    # legends under each panel
+    threshold = lambda t: Line2D([], [], ls="--", c="grey", lw=1, label=f"flag threshold ({t})")
+    legends = [
+        [Patch(color=ok, label="pass"), Patch(color=bad, label="flagged"),
+         threshold(f"{MAX_CTRL_SD_RATIO}×"), Line2D([], [], c="grey", lw=0.5, label="equal to others (1)")],
+        [Patch(color=ok, label="pass"), Patch(color=bad, label="flagged"),
+         threshold(MAX_CTRL_TARGET_SD)],
+        [Patch(color=ok, label="targets, pass"),
+         Patch(color=bad, label=f"targets, flagged (< {MIN_SIGNAL_GAP} above controls)"),
+         Patch(color="#888780", label="controls")],
+    ]
+    for ax, handles, ncol in zip(axs, legends, [2, 2, 1]):
+        ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, -0.28),
+                  ncol=ncol, fontsize=9, frameon=False)
 
     for ax in axs:
         ax.set_xticks(x)
         ax.set_xticklabels(m["replicate"], rotation=30, ha="right")
         ax.spines[["top", "right"]].set_visible(False)
-    plt.suptitle(f"Replicate QC: {name}  (red = beyond the dashed threshold; "
-                 f"targets red if they agree < {MIN_SIGNAL_GAP} better than controls)")
+    plt.suptitle(f"Replicate QC: {name}")
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, f"qc_replicate_{name}.pdf"), bbox_inches="tight")
     plt.close()
