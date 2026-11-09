@@ -86,6 +86,7 @@ def main():
     thr_lfcdz = -thr_lfchz
 
     ssc     = 1 # small sample correction count
+    MIN_NULL_SIZE = 200 # control values per null below which the gRNA p floor (2/(n+1) > 0.01) is warned about
 
     # Record this run's settings in <output_dir>/run_log_<timestamp>.txt
     log = run_log.RunLog(output_dir, args.config, __version__)
@@ -213,6 +214,25 @@ def main():
         log.write(f"{name}: {', '.join(baseline)} -> {', '.join(cond1)} | "
                   f"{len(T_target)} target, {len(T_control)} control gRNAs | "
                   f"histogram range [{st}, {en}]")
+
+        # few controls -> high gRNA p floor: one-sided 1/(n+1), two-sided 2/(n+1)
+        ctrl_lfc = T_control[[c for c in T_control.columns if c.startswith("lfc")]]
+        n_null = (int(np.isfinite(ctrl_lfc.to_numpy(dtype=float)).sum()) if norm_method == "pooled"
+                  else int(np.isfinite(ctrl_lfc.to_numpy(dtype=float)).sum(axis=0).min()))
+        p_floor = 2 / (n_null + 1)
+        null_desc = "pooled null" if norm_method == "pooled" else "smallest per-replicate null"
+        if p_floor > significance_threshold:
+            msg = (f"{name}: WARNING only {n_null} control values in the {null_desc}: the "
+                   f"smallest possible two-sided gRNA p is {p_floor:.3g}, so no gRNA can pass "
+                   f"significance_threshold {significance_threshold}")
+        elif n_null < MIN_NULL_SIZE:
+            msg = (f"{name}: WARNING only {n_null} control values in the {null_desc}: "
+                   f"smallest possible two-sided gRNA p is {p_floor:.3g}")
+        else:
+            msg = None
+        if msg:
+            log.write(msg)
+            print(msg)
 
         # pooled: me_sd is (2,); sample: (n_rep, 2) -> comma-separated per replicate
         me_sd_2d = np.atleast_2d(me_sd)
