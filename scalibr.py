@@ -59,7 +59,6 @@ def main():
     output_dir = Path(config["output_dir"])
     output_dir.mkdir(parents=True, exist_ok=True) 
 
-    keep_counts = config["keep_counts"]
     significance_threshold = config["significance_threshold"]
     norm_method = config["normalisation_method"]
     valid_methods = {"sample", "pooled"}
@@ -94,7 +93,6 @@ def main():
     log.field("normalisation_method", norm_method)
     log.field("target_type", target_type)
     log.field("control_type", f"{control_label} ({len(control_type)} type(s) pooled)")
-    log.field("keep_counts", keep_counts)
     log.field("min_baseline_count", f"{min_baseline_count} (normalised reads, every baseline "
               f"sample of the contrast)" if min_baseline_count else "off")
     log.field("significance_threshold", significance_threshold)
@@ -119,28 +117,22 @@ def main():
     # Number of gRNAs per gene/intergenic name, counted over the whole file
     grna_per_gene = gene_names.value_counts()
     plot_grna_distribution.plot_grna_distribution(grna_per_gene.tolist(), output_dir)
-
-    # Removes genes with incorrect number of gRNAs
-    keep_rows = gene_names.map(grna_per_gene).isin(keep_counts)
-    T_vert_f = T_vert[keep_rows].reset_index(drop=True)
-    log.field("Kept by keep_counts", f"{len(T_vert_f)} of {len(T_vert)} gRNAs "
-                                     f"({grna_per_gene.isin(keep_counts).sum()} genes)")
     log.field("positive_control_type", positive_type or "none (QC separation metrics skipped)")
     log.config_text()
 
     # Count-level QC per sample: depth, zero-count gRNAs, Gini index
     baselines = {s for c in config["contrasts"] for s in c["baseline"]}
-    qc_samples = qc_metrics.sample_metrics(T_vert_f, baselines, output_dir)
+    qc_samples = qc_metrics.sample_metrics(T_vert, baselines, output_dir)
     log.section("Sample QC (qc_sample_metrics.csv)")
     flagged = qc_samples[qc_samples["flags"] != ""]
     log.write("all samples pass" if flagged.empty else
               "\n".join(f"FLAG {r.sample}: {r.flags}" for r in flagged.itertuples()))
 
     log.section("Contrasts")
-    plot_pca.plot_pca(T_vert_f, output_dir, name="raw")
+    plot_pca.plot_pca(T_vert, output_dir, name="raw")
 
     # Normalise counts within a sample
-    norm_dat = normalise_total.normalise_total(ssc, T_vert_f, output_dir) 
+    norm_dat = normalise_total.normalise_total(ssc, T_vert, output_dir)
     norm_dat.to_csv(os.path.join(output_dir, 'normalised_counts.csv'), index=False)
     plot_pca.plot_pca(norm_dat, output_dir, name="normalised" )
     plot_heatmap.plot_heatmap(norm_dat, output_dir)

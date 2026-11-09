@@ -28,7 +28,7 @@ def gini(x):
 
 def sample_metrics(raw, baseline_samples, output_dir):
     """
-    Count-level QC per sample, on raw counts after the keep_counts filter.
+    Count-level QC per sample, on raw counts.
 
     Parameters
     ----------

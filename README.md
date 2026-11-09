@@ -53,7 +53,6 @@ To run on your own data:
 |-------------------|-----------------------------------------------------------|---------------------------------------|
 | `input_counts`    | Path to the counts CSV                                    | `demo_data/WT_....csv`                |
 | `output_dir`      | Directory where results are written                       | `output`                              |
-| `keep_counts`     | Number of gRNAs per gene                                  | `[1, 4, 10]`                          |
 | `target_type`     | Choice of target genes                                    | `GOI`                                 |
 | `control_type`    | Control gene type(s) ; a list (e.g. `['Neutral expressed gene', 'Zero-expressed gene']`) pools them into one control set | `Zero-expressed genes`|
 | `contrasts`       | List of contrasts to run; each has a `name`, and `baseline`/`treatment` with lists of replicates (if present) | see below          |
