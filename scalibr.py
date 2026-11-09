@@ -79,6 +79,10 @@ def main():
     thr_lfchz = config["thr_lfchz"]
     fisher_scale_factor = config.get("fisher_scale_factor", 1.0)   # gene-level Fisher's method
     positive_type = config.get("positive_control_type")   # e.g. essential genes, for QC only
+    min_baseline_count = config.get("min_baseline_count") or 0   # 0 / missing = no filter
+    if not isinstance(min_baseline_count, (int, float)) or min_baseline_count < 0:
+        sys.exit(f"Config error: min_baseline_count must be a number >= 0, "
+                 f"got {config['min_baseline_count']!r}")
     thr_lfcdz = -thr_lfchz
 
     ssc     = 1 # small sample correction count
@@ -90,6 +94,8 @@ def main():
     log.field("target_type", target_type)
     log.field("control_type", f"{control_label} ({len(control_type)} type(s) pooled)")
     log.field("keep_counts", keep_counts)
+    log.field("min_baseline_count", f"{min_baseline_count} (normalised reads, every baseline "
+              f"sample of the contrast)" if min_baseline_count else "off")
     log.field("significance_threshold", significance_threshold)
     log.field("thr_lfchz / thr_lfcdz", f"{thr_lfchz} / {thr_lfcdz}")
     log.field("step", step)
@@ -161,6 +167,21 @@ def main():
             if any(c == p for p in wanted_prefixes)
         ]
         norm_dat_filtered = norm_dat[keep]
+
+        # optional: drop gRNAs with too few normalised reads in any baseline sample
+        if min_baseline_count:
+            base_cols = [b for b in baseline if b in norm_dat_filtered.columns]
+            low = (norm_dat_filtered[base_cols] < min_baseline_count).any(axis=1)
+            if low.any():
+                norm_dat_filtered[low].to_csv(
+                    c_outdir / f"low_count_gRNAs_{name}.csv", index=False)
+            by_type = norm_dat_filtered.loc[low, "gene_type"].value_counts()
+            log.write(f"{name}: removed {int(low.sum())} of {len(low)} gRNAs with < "
+                      f"{min_baseline_count} normalised reads in a baseline sample"
+                      + (" (" + ", ".join(f"{t}: {n}" for t, n in by_type.items()) + ")"
+                         if low.any() else ""))
+            norm_dat_filtered = norm_dat_filtered[~low].reset_index(drop=True)
+
         plot_pca.plot_pca(norm_dat_filtered, c_outdir, name="normalised" )
 
         plot_gene_variability.plot_gene_variability(norm_dat_filtered, c_outdir, baseline, cond1, target_type)

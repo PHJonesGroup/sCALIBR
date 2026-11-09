@@ -61,6 +61,7 @@ To run on your own data:
 | `thr_lfchz`       | LFC threshold for volcano plot                            | `2`                                 |
 | `significance_threshold` | Hit threshold: raw p-value for gRNAs, BH-adjusted Fisher p (q) for genes | `0.05` |
 | `positive_control_type` | Optional. Positive-control gene type (e.g. essential genes), used only for replicate QC (SSMD/AUROC vs controls) | `Essential gene` |
+| `min_baseline_count` | Optional. Per contrast, drop gRNAs (all gene types) with fewer than this many normalised reads in any of its baseline samples; their LFCs are mostly counting noise. Omit or `0` = no filter | `30` |
 
 #### Contrasts
 
@@ -79,11 +80,11 @@ Example:
 ```yaml
 contrasts:
   - name: T1_vs_T0             # two replicates contrast
-    baseline: [T0_F, T0_M]
-    cond1:    [T1_F, T1_M]
+    baseline:  [T0_F, T0_M]
+    treatment: [T1_F, T1_M]
   - name: T1_vs_T0_F_only      # one replicate contrast
-    baseline: [T0_F]
-    cond1:    [T1_F]
+    baseline:  [T0_F]
+    treatment: [T1_F]
 ```
 
 ### Format of count file
@@ -126,7 +127,8 @@ For the pipeline to run correctly, the input count file must follow this exact c
 | `p_distri_targ_cont_{contrast_name}.png`              | Control-calibrated p-value curves of target vs control gRNAs                                                                      | 
 | `qc_sample_metrics.csv`                               | Per sample: total reads, reads per gRNA, zero-count fraction, Gini index, and flags against similar samples                       | 
 | `qc_replicate_metrics_{contrast_name}.csv` / `.pdf`   | Per replicate: control median and SD, control SD vs other replicates and vs targets, leave-one-out Spearman (targets, controls), SSMD/AUROC of positive controls, and flags | 
-| `lfc_pca_qc.pdf`                                      | PCA of the per-replicate LFCs of a contrast                                                                                       | 
+| `lfc_pca_qc.pdf`                                      | PCA of the per-replicate LFCs of a contrast                                                                                       |
+| `low_count_gRNAs_{contrast_name}.csv`                 | gRNAs removed by `min_baseline_count`, with their normalised counts (only if any were removed)                                   | 
 | `run_log_{YYYYmmdd_HHMMSS}.txt`                       | One per run: settings, config as written, input checksum, code version, per-contrast histogram range, and whether the run completed | 
 | `target_{contrast_name}_gRNA.csv`                     | LFC, Z-corrected LFC, q-value, condition table for target genes                                                                   | 
 | `volcano_gRNA_{contrast_name}.png`                    | Volcano plot on gRNA and gene level                                                                                               | 
