@@ -41,11 +41,7 @@ def lfc_table(tab, baseline, cond1):
     if len(baseline) != len(cond1):
         raise ValueError(f"baseline ({baseline}) and cond1 ({cond1}) must be the same length")
 
-    suffixes = [_pairing_suffix(b) for b in baseline]
-    dup = sorted({s for s in suffixes if suffixes.count(s) > 1})
-    if dup:
-        raise ValueError(f"Replicate labels {dup} are not unique for baseline {baseline}; "
-                         f"two replicates would overwrite each other's LFC column")
+    suffixes = _replicate_labels(baseline)
 
     for b, c, suffix in zip(baseline, cond1, suffixes):
         if b not in tab.columns or c not in tab.columns:
@@ -55,6 +51,34 @@ def lfc_table(tab, baseline, cond1):
         ).values
 
     return out
+
+def _replicate_labels(baseline):
+    """One unique label per baseline column, used as the LFC column suffix.
+
+    Tries, in order, the first rule that gives unique labels:
+    1. _pairing_suffix: drop the time-point prefix ('T0_F_R1' -> 'F_R1');
+    2. drop the '_' parts shared by every baseline column
+       (['F_T0_rep1', 'M_T0_rep1'] -> ['F_rep1', 'M_rep1']);
+    3. the full baseline column name.
+    """
+    def unique(labels):
+        return all(labels) and len(set(labels)) == len(labels)
+
+    labels = [_pairing_suffix(b) for b in baseline]
+    if unique(labels):
+        return labels
+
+    parts = [b.split('_') for b in baseline]
+    shared = set.intersection(*(set(p) for p in parts))
+    labels = ['_'.join(t for t in p if t not in shared).strip('+-') for p in parts]
+    if unique(labels):
+        return labels
+
+    labels = list(baseline)
+    if not unique(labels):
+        raise ValueError(f"Baseline columns {baseline} are not unique; "
+                         f"two replicates would overwrite each other's LFC column")
+    return labels
 
 def _pairing_suffix(baseline_col):
     """Derive a short replicate label from the baseline column, e.g. 'T0_F' -> 'F',
