@@ -14,13 +14,14 @@ def p_control_target_implement(T_target, T_control, binn, p_cont):
     binn : array-like
         Histogram bin edges.
     p_cont : array-like
-        Per-bin control p-values (1-D), aligned to ``binn``.
+        Per-bin control p-curves (depletion, enrichment) from CTR_stats.
 
     Returns
     -------
     T_q_verti : pandas.DataFrame
-            [gRNA, gene, gene_type, lfc(_<rep>), p(_<rep>), ...] with control-calibrated
-            empirical p-values (not corrected for multiple testing).
+            [gRNA, gene, gene_type, lfc(_<rep>), p(_<rep>), dep_p(_<rep>),
+            enr_p(_<rep>), ...]: control-calibrated empirical p-values, two-sided,
+            depletion and enrichment (not corrected for multiple testing).
     """
     # Concatenate tables vertically 
     T_target_T_control = pd.concat([T_target, T_control], ignore_index=True)

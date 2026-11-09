@@ -2,14 +2,16 @@ import numpy as np
 
 def q_val_frequentist_critical(his: np.ndarray):
     """
-    Given a histogram of LFC values (counts per bin), compute the combined
-    two-tailed p-curve: the left-tail empirical p up to the point where the
-    left and right curves cross, the right-tail empirical p beyond it.
+    Given a histogram of LFC values (counts per bin), compute the one-sided
+    empirical p-curves for depletion (left tail) and enrichment (right tail).
 
     Each tail uses p = (k + 1) / (n + 1), where k is the number of values in
     that bin or further out and n is the total. Counting the tested value as
     one more draw from the null keeps p above zero: a value beyond every
     control gets 1 / (n + 1), the smallest p n controls can support.
+
+    Each tail on its own runs from about 0 to 1 under the null, which Fisher's
+    method needs; taking the smaller of the two would cap p at about 0.5.
 
     Parameters
     ----------
@@ -18,8 +20,10 @@ def q_val_frequentist_critical(his: np.ndarray):
 
     Returns
     -------
-    p : numpy.ndarray
-        Combined p-curve (left tail then right tail); length == len(his).
+    p_left : numpy.ndarray
+        Depletion p per bin: share of values in that bin or further left.
+    p_right : numpy.ndarray
+        Enrichment p per bin: share of values in that bin or further right.
     """
     S = his.sum()         # total gRNA count
 
@@ -29,11 +33,9 @@ def q_val_frequentist_critical(his: np.ndarray):
     p_right = (cum_R + 1) / (S + 1)
     p_left  = (cum_L + 1) / (S + 1)
 
-    #intersection (mode‑like) where |p_R - p_L| is minimal
-    ind_min = np.argmin(np.abs(p_right - p_left))
+    return p_left, p_right
 
-    # combined p vector
-    p_combined = np.concatenate([p_left[:ind_min+1],
-                                 p_right[ind_min+1:]])
 
-    return p_combined
+def two_sided(p_left, p_right):
+    """Two-sided p: twice the smaller tail, capped at 1."""
+    return np.minimum(1.0, 2 * np.minimum(p_left, p_right))

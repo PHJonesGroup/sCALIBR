@@ -30,7 +30,8 @@ def make_histo_crit_stats(st, en, step, T_control, plot_name, control, output_di
     bin_ : numpy.ndarray
         Histogram bin edges (left edges).
     p : numpy.ndarray
-        Control p-curve, one value per bin of ``bin_``.
+        (n_bins, 2) control p-curves per bin of ``bin_``: column 0 = depletion
+        (left tail), column 1 = enrichment (right tail).
     me_sd : numpy.ndarray
         [mean, SD] of the pooled control LFC.
     """
@@ -44,8 +45,8 @@ def make_histo_crit_stats(st, en, step, T_control, plot_name, control, output_di
     # 2. Histogram of the pooled control LFCs
     bin_, his, _ = make_histo_LFC(step, LFC, st, en)
 
-    # 3. p-curve
-    p = q_val_frequentist_critical(his)
+    # 3. p-curves: depletion and enrichment tails
+    p = np.column_stack(q_val_frequentist_critical(his))
 
     # 4. Mean / SD and Z on the pooled control LFCs
     Z, me_sd = med_mad_MZNP(LFC)

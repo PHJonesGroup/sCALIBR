@@ -3,7 +3,7 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 from .make_histo_crit_stats import make_histo_crit_stats
-from .q_val_frequentist_critical import q_val_frequentist_critical
+from .q_val_frequentist_critical import q_val_frequentist_critical, two_sided
 import matplotlib as mpl
 mpl.rcParams['pdf.fonttype'] = 42
 mpl.rcParams['ps.fonttype'] = 42
@@ -44,10 +44,11 @@ def CTR_stats(st, en, step, T_control, hist, plot_name,
         'pooled': [mean, SD]. 'sample': (n_rep, 2), one row per replicate,
         in the order of the control table's lfc columns.
     p_cont : numpy.ndarray
-        Control p-curve per bin. 'pooled': (n_bins,). 'sample': (n_bins, n_rep),
-        one column per replicate.
+        Control p-curves per bin; the last axis is (depletion, enrichment).
+        'pooled': (n_bins, 2). 'sample': (n_bins, n_rep, 2), one per replicate.
 
-    The target p-curve is computed here only for the saved plot and CSV.
+    The saved plot and CSV show the two-sided curves, 2 x the smaller tail
+    capped at 1. The target p-curve is computed here only for those.
     """
     lfc_cols = [c for c in T_control.columns if c.startswith('lfc')]
     if not lfc_cols:
@@ -69,7 +70,7 @@ def CTR_stats(st, en, step, T_control, hist, plot_name,
             p_list.append(p_c)
             mesd_list.append(me_sd_c)
 
-        p_cont    = np.column_stack(p_list)       # (n_bins, n_rep)
+        p_cont    = np.stack(p_list, axis=1)      # (n_bins, n_rep, 2)
         me_sd     = np.vstack(mesd_list)          # (n_rep, 2)
 
     else:
@@ -80,38 +81,39 @@ def CTR_stats(st, en, step, T_control, hist, plot_name,
     if norm_method == "pooled":
         if hist.ndim == 2:
             hist = hist.sum(axis=1)
-        p_targ = q_val_frequentist_critical(hist)
+        p_targ = two_sided(*q_val_frequentist_critical(hist))
     else:
         if hist.ndim != 2 or hist.shape[1] != len(lfc_cols):
             raise ValueError(f"target hist has shape {hist.shape}; expected "
                              f"(n_bins, {len(lfc_cols)}) for lfc columns {lfc_cols}")
-        p_targ = np.column_stack([q_val_frequentist_critical(hist[:, j])
+        p_targ = np.column_stack([two_sided(*q_val_frequentist_critical(hist[:, j]))
                                   for j in range(hist.shape[1])])   # (n_bins, n_rep)
 
-    # save the p-curves
+    # save the two-sided p-curves
+    p_ctrl = two_sided(p_cont[..., 0], p_cont[..., 1])   # (n_bins,) or (n_bins, n_rep)
     cols = {"bin": np.round(binn, 2)}
     if norm_method == "pooled":
         cols["target"] = np.round(p_targ, 4)
-        cols[f"control_{control}"] = np.round(p_cont, 4)
+        cols[f"control_{control}"] = np.round(p_ctrl, 4)
     else:
         for j, col in enumerate(lfc_cols):
             cols[f"target_{col}"] = np.round(p_targ[:, j], 4)
-            cols[f"control_{control}_{col}"] = np.round(p_cont[:, j], 4)
+            cols[f"control_{control}_{col}"] = np.round(p_ctrl[:, j], 4)
     pd.DataFrame(cols).to_csv(
         os.path.join(output_dir, f"p_distri_targ_cont_{plot_name}_data.csv"), index=False)
 
     plt.figure()
     if norm_method == "pooled":
-        plt.plot(binn, p_cont, color="0.5", linestyle="--", label=f"control ({control})")
+        plt.plot(binn, p_ctrl, color="0.5", linestyle="--", label=f"control ({control})")
         plt.plot(binn, p_targ, color="C3", linestyle="-", label="target")
     else:
         # same colour per replicate: dashed = control, solid = target
         for j, col in enumerate(lfc_cols):
-            plt.plot(binn, p_cont[:, j], color=f"C{j}", linestyle="--", label=f"control {col}")
+            plt.plot(binn, p_ctrl[:, j], color=f"C{j}", linestyle="--", label=f"control {col}")
             plt.plot(binn, p_targ[:, j], color=f"C{j}", linestyle="-",  label=f"target {col}")
     plt.title(f"Target vs. {control} gRNAs ({plot_name}, {norm_method})")
     plt.xlabel("LFC bin")
-    plt.ylabel("Probability")
+    plt.ylabel("Two-sided p")
     plt.legend()
     plt.grid(True)
     plt.savefig(os.path.join(output_dir, f"p_distri_targ_cont_{plot_name}.pdf"),

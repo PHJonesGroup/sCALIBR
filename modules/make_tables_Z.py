@@ -7,7 +7,8 @@ def make_tables_Z(target, Z_t):
     Parameters
     ----------
     target : pandas.DataFrame
-        Target gRNA table [gRNA, gene, gene_type, lfc_<r>, ..., p_<r>, ...].
+        Target gRNA table [gRNA, gene, gene_type, lfc_<r>, ..., p_<r>,
+        dep_p_<r>, enr_p_<r>, ...].
     Z_t : numpy.ndarray
         (n_gRNA, n_reps) per-replicate Z-scores, column order matching the
         lfc_* columns of ``target``.
@@ -15,9 +16,9 @@ def make_tables_Z(target, Z_t):
     Returns
     -------
     T_wt : pandas.DataFrame
-        [gRNA, gene, gene_type, lfc_<r>, normalised_lfc_<r>, p_<r>, ...] (p = raw
-        empirical p-value),
-        one set of columns per replicate.
+        [gRNA, gene, gene_type, lfc_<r>, normalised_lfc_<r>, p_<r>, dep_p_<r>,
+        enr_p_<r>, ...] (raw empirical p-values: two-sided, depletion,
+        enrichment), one set of columns per replicate.
 
     Raises
     ------
@@ -47,8 +48,8 @@ def make_tables_Z(target, Z_t):
         T_wt[f'lfc{rep_suffix}']                  = target[lc].values
         T_wt[f'normalised_lfc{rep_suffix}'] = Z_t[:, k]
 
-        qc = f'p{rep_suffix}'
-        if qc in target.columns:
-            T_wt[qc] = target[qc].values
+        for pc in (f'p{rep_suffix}', f'dep_p{rep_suffix}', f'enr_p{rep_suffix}'):
+            if pc in target.columns:
+                T_wt[pc] = target[pc].values
 
     return T_wt

@@ -8,7 +8,7 @@ from .collapse_table import collapse_table
 
 def volcano_gRNA_gene_hits_interactive(
     significance_threshold, sfdr_corr, thr_lfchz, thr_lfcdz,
-    T_vert, plot_name, output_dir, norm_method="pooled", fisher_scale_factor=1/3
+    T_vert, plot_name, output_dir, norm_method="pooled", fisher_scale_factor=1.0
 ):
     """
     Draw interactive per-gRNA and per-gene Z volcano plots and write them as HTML.

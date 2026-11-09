@@ -77,7 +77,7 @@ def main():
     control_label = " + ".join(control_type)    # used in plot titles, file names, stats
     step = config["step"]       # histogram range (st, en) is set per contrast from the LFCs
     thr_lfchz = config["thr_lfchz"]
-    fisher_scale_factor = config.get("fisher_scale_factor", 1/3)   # gene-level Fisher's method
+    fisher_scale_factor = config.get("fisher_scale_factor", 1.0)   # gene-level Fisher's method
     positive_type = config.get("positive_control_type")   # e.g. essential genes, for QC only
     thr_lfcdz = -thr_lfchz
 
@@ -96,7 +96,8 @@ def main():
     log.field("step", step)
     log.field("Histogram range", "set per contrast from the data (see Contrasts)")
     log.field("Fixed constants", f"sfdr_corr = {sfdr_corr}, ssc = {ssc}")
-    log.field("Gene-level test", "median normalised LFC; Fisher's method on gRNA p-values, "
+    log.field("Gene-level test", "median normalised LFC; Fisher's method run separately on gRNA "
+              "depletion and enrichment p-values, gene p = 2 x the smaller, "
               "BH across target genes" + ("; per sample, and a final result with Fisher's "
                                           "method once over all samples' raw gRNA p-values"
                                           if norm_method == "sample" else ""))
