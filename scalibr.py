@@ -137,6 +137,12 @@ def main():
     plot_pca.plot_pca(norm_dat, output_dir, name="normalised" )
     plot_heatmap.plot_heatmap(norm_dat, output_dir)
 
+    # control summary is rebuilt each run (rows are appended per contrast below)
+    summary_path = os.path.join(output_dir, "control_stats_by_contrast.txt")
+    with open(summary_path, "w") as fh:
+        fh.write("contrast\tbaseline\ttreatment\tcontrol_type\tnorm_method\t"
+                 "n_control_gRNA\tmean\tsd\n")
+
     # loops over contrasts
     for contrast in config["contrasts"]:
         name     = contrast["name"]
@@ -193,12 +199,7 @@ def main():
         mean_str = ",".join(f"{v:.6f}" for v in me_sd_2d[:, 0])
         sd_str   = ",".join(f"{v:.6f}" for v in me_sd_2d[:, 1])
 
-        summary_path = os.path.join(output_dir, "control_stats_by_contrast.txt")
-        write_header = not os.path.exists(summary_path)
         with open(summary_path, "a") as fh:
-            if write_header:
-                fh.write("contrast\tbaseline\ttreatment\tcontrol_type\tnorm_method\t"
-                        "n_control_gRNA\tmean\tsd\n")
             fh.write(f"{name}\t{','.join(baseline)}\t{','.join(cond1)}\t"
                     f"{control_label}\t{norm_method}\t{len(T_control)}\t"
                     f"{mean_str}\t{sd_str}\n")
