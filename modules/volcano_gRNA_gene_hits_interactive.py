@@ -2,7 +2,7 @@ import plotly.graph_objs as go
 import os
 from plotly.subplots import make_subplots
 from .plot_volcano_interactive import plot_volcano_interactive
-from .gene_fisher import gene_fisher
+from .gene_fisher import gene_fisher, grna_fisher
 from .collapse_table import collapse_table
 
 
@@ -13,15 +13,15 @@ def volcano_gRNA_gene_hits_interactive(
     """
     Draw interactive per-gRNA and per-gene Z volcano plots and write them as HTML.
 
-    Panels: per-gRNA Z (left), per-gene Z (right). Replicate columns are collapsed to a per-gRNA median before
-    plotting; per-gene values come from gene_fisher (median normalised LFC,
-    Fisher-combined p, BH across genes).
+    Panels: per-gRNA (left), per-gene (right), both with BH q on the y-axis.
+    Per gRNA: median normalised LFC over replicates, and grna_fisher
+    (directional Fisher over its replicates, BH across gRNAs). Per gene:
+    gene_fisher (median normalised LFC, directional Fisher, BH across genes).
 
     Parameters
     ----------
     significance_threshold : float
-        Significance threshold for hit calling: on the raw gRNA p-value in the
-        gRNA panel, on the BH q-value in the gene panel.
+        Hit threshold on the BH q-value, for gRNAs and genes.
     thr_lfchz, thr_lfcdz : float
         Right / left critical thresholds on the normalised LFC scale.
     T_vert : pandas.DataFrame
@@ -44,7 +44,7 @@ def volcano_gRNA_gene_hits_interactive(
     genes = T_vert['gene']
 
     scoreZ = collapse_table(T_vert, prefix="normalised_lfc", exact="normalised_lfc")
-    pval   = collapse_table(T_vert, prefix="p_",             exact="p")
+    qval   = grna_fisher(T_vert, fisher_scale_factor)['q']
 
     fig = make_subplots(rows=1, cols=2, subplot_titles=(
         "Volcano per gRNA",
@@ -74,7 +74,7 @@ def volcano_gRNA_gene_hits_interactive(
 
     # --- Left: per-gRNA Z ---
     _, _, _, T_ds, T_hs, T_gRNA = plot_volcano_interactive(
-        significance_threshold, thr_lfchz, thr_lfcdz, scoreZ, pval, genes, grnas)
+        significance_threshold, thr_lfchz, thr_lfcdz, scoreZ, qval, genes, grnas)
     add_volcano(T_gRNA, T_hs, T_ds, row=1, col=1, label="gRNA", show_legend=True)
 
     # --- per-gene aggregation ---
@@ -90,9 +90,9 @@ def volcano_gRNA_gene_hits_interactive(
     else:
         print("No per-gene data available, skipping gene volcano plot")
 
-    for c, y_title in ((1, "-log10(p-value)"), (2, "-log10(q-value)")):
+    for c in (1, 2):
         fig.update_xaxes(title_text="Normalised LFC", row=1, col=c)
-        fig.update_yaxes(title_text=y_title, row=1, col=c)
+        fig.update_yaxes(title_text="-log10(q-value)", row=1, col=c)
 
     fig.update_layout(title=f"{plot_name}", showlegend=True)
     fig.write_html(

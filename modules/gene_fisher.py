@@ -74,6 +74,38 @@ def _per_gene(T_vert, nl_cols, sfx, scale_factor):
     return pd.DataFrame(rows)
 
 
+def grna_fisher(T_vert, scale_factor=1.0):
+    """
+    Per-gRNA directional Fisher test over its replicates, BH-corrected across gRNAs.
+
+    The same test as for genes, with one gRNA's replicates in place of a gene's
+    gRNAs: Fisher's method on the gRNA's depletion p-values and, separately, on
+    its enrichment p-values; p = twice the smaller, capped at 1. With one
+    replicate this is that replicate's two-sided p.
+
+    Parameters
+    ----------
+    T_vert : pandas.DataFrame
+        Per-gRNA table with dep_p(_<rep>) and enr_p(_<rep>) columns, targets only.
+    scale_factor : float
+        Passed to fisher_combine.
+
+    Returns
+    -------
+    pandas.DataFrame
+        [p, direction, q], one row per gRNA, same index as T_vert.
+    """
+    sfx = _rep_suffixes(T_vert)
+    dep = T_vert[[f'dep_p{s}' for s in sfx]].to_numpy(dtype=float)
+    enr = T_vert[[f'enr_p{s}' for s in sfx]].to_numpy(dtype=float)
+    p_dep = np.array([fisher_combine(r, scale_factor)[1] for r in dep])
+    p_enr = np.array([fisher_combine(r, scale_factor)[1] for r in enr])
+    p = np.minimum(1.0, 2 * np.minimum(p_dep, p_enr))
+    return pd.DataFrame({'p': p,
+                         'direction': np.where(p_dep <= p_enr, 'depleted', 'enriched'),
+                         'q': bh_adjust(p)}, index=T_vert.index)
+
+
 def gene_fisher(T_vert, norm_method="pooled", scale_factor=1.0):
     """
     Gene-level normalised LFC and directional Fisher p-values, BH-corrected across genes.

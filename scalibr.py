@@ -107,6 +107,8 @@ def main():
               "BH across target genes" + ("; per sample, and a final result with Fisher's "
                                           "method once over all samples' raw gRNA p-values"
                                           if norm_method == "sample" else ""))
+    log.field("gRNA-level test", "median normalised LFC; the same directional Fisher test over "
+              "the gRNA's replicates, BH across target gRNAs")
     log.field("fisher_scale_factor", fisher_scale_factor)
 
     # ============================ MODULE 1 ============================
