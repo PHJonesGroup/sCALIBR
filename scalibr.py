@@ -81,7 +81,6 @@ def main():
     positive_type = config.get("positive_control_type")   # e.g. essential genes, for QC only
     thr_lfcdz = -thr_lfchz
 
-    sfdr_corr = 0.0001 # constant to avoid log10(0)
     ssc     = 1 # small sample correction count
 
     # Record this run's settings in <output_dir>/run_log_<timestamp>.txt
@@ -95,7 +94,7 @@ def main():
     log.field("thr_lfchz / thr_lfcdz", f"{thr_lfchz} / {thr_lfcdz}")
     log.field("step", step)
     log.field("Histogram range", "set per contrast from the data (see Contrasts)")
-    log.field("Fixed constants", f"sfdr_corr = {sfdr_corr}, ssc = {ssc}")
+    log.field("Fixed constants", f"ssc = {ssc}")
     log.field("Gene-level test", "median normalised LFC; Fisher's method run separately on gRNA "
               "depletion and enrichment p-values, gene p = 2 x the smaller, "
               "BH across target genes" + ("; per sample, and a final result with Fisher's "
@@ -231,10 +230,10 @@ def main():
         # -------------------- 2.5 --------------------
         # Find extreme sets (enriched/ depleted) and volcano for gRNA and gene
         T_gRNA, T_gene = volcano_gRNA_gene_hits.volcano_gRNA_gene_hits(
-            significance_threshold, sfdr_corr, thr_lfchz, thr_lfcdz, T_t, name, c_outdir, norm_method, fisher_scale_factor)
+            significance_threshold, thr_lfchz, thr_lfcdz, T_t, name, c_outdir, norm_method, fisher_scale_factor)
 
         volcano_gRNA_gene_hits_interactive.volcano_gRNA_gene_hits_interactive(
-            significance_threshold, sfdr_corr, thr_lfchz, thr_lfcdz, T_t, name, c_outdir, norm_method, fisher_scale_factor)
+            significance_threshold, thr_lfchz, thr_lfcdz, T_t, name, c_outdir, norm_method, fisher_scale_factor)
 
         T_gRNA.to_csv(os.path.join(c_outdir, f"volcano_{name}_grna.csv"), index=False)
         T_gene.to_csv(os.path.join(c_outdir, f"volcano_{name}_gene.csv"), index=False)
