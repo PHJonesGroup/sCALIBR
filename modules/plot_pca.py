@@ -60,13 +60,15 @@ def plot_pca(norm_dat, output_dir, name, log_transform=True):
     Parameters
     ----------
     norm_dat : pandas.DataFrame
-        Normalised counts: three ID columns (sgRNA_name, gene, gene_type),
-        then one count column per sample.
+        Three ID columns (sgRNA_name, gene, gene_type), then one value column
+        per sample: normalised counts, or per-replicate LFCs (with
+        log_transform=False).
     output_dir : str
         Directory where plot is saved.
     log_transform : bool, optional
         Apply log2(x + 1) before PCA (default True), so a few high-count gRNAs
-        don't dominate the components.
+        don't dominate the components. Use False for LFCs, which are already
+        on a log scale.
 
     Returns
     -------

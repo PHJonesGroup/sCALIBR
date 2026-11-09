@@ -10,7 +10,7 @@ from importlib.metadata import version, PackageNotFoundError
 from modules import run_log, plot_grna_distribution
 from modules import normalise_total, plot_gene_variability, plot_pca, plot_heatmap
 from modules import norm_table_individ, plot_mean_median
-from modules import separate_target_control
+from modules import separate_target_control, lfc_table, qc_metrics
 from modules import CTR_stats
 from modules import p_control_target_implement
 from modules import computeZ, make_tables_Z, plot_histograms
@@ -78,6 +78,7 @@ def main():
     step = config["step"]       # histogram range (st, en) is set per contrast from the LFCs
     thr_lfchz = config["thr_lfchz"]
     fisher_scale_factor = config.get("fisher_scale_factor", 1/3)   # gene-level Fisher's method
+    positive_type = config.get("positive_control_type")   # e.g. essential genes, for QC only
     thr_lfcdz = -thr_lfchz
 
     sfdr_corr = 0.0001 # constant to avoid log10(0)
@@ -115,7 +116,17 @@ def main():
     T_vert_f = T_vert[keep_rows].reset_index(drop=True)
     log.field("Kept by keep_counts", f"{len(T_vert_f)} of {len(T_vert)} gRNAs "
                                      f"({grna_per_gene.isin(keep_counts).sum()} genes)")
+    log.field("positive_control_type", positive_type or "none (QC separation metrics skipped)")
     log.config_text()
+
+    # Count-level QC per sample: depth, zero-count gRNAs, Gini index
+    baselines = {s for c in config["contrasts"] for s in c["baseline"]}
+    qc_samples = qc_metrics.sample_metrics(T_vert_f, baselines, output_dir)
+    log.section("Sample QC (qc_sample_metrics.csv)")
+    flagged = qc_samples[qc_samples["flags"] != ""]
+    log.write("all samples pass" if flagged.empty else
+              "\n".join(f"FLAG {r.sample}: {r.flags}" for r in flagged.itertuples()))
+
     log.section("Contrasts")
     plot_pca.plot_pca(T_vert_f, output_dir, name="raw")
 
@@ -157,6 +168,17 @@ def main():
         # Separate and show controls, NTs, zGE, and normalised counts distribution
         T_target, T_control, hist, bin_edges, st, en = separate_target_control.separate_target_control(
             step, norm_dat_filtered, target_type, control_type, baseline, cond1, name, c_outdir)
+
+        # PCA of the per-replicate LFCs (all gene types): one point per replicate
+        lfc_all = lfc_table.lfc_table(norm_dat_filtered, baseline, cond1)
+        if lfc_all.shape[1] - 3 >= 2:
+            plot_pca.plot_pca(lfc_all, c_outdir, name="lfc", log_transform=False)
+
+            # Replicate QC: control noise, controls vs targets, leave-one-out agreement
+            qc_reps = qc_metrics.replicate_metrics(
+                lfc_all, target_type, control_type, positive_type, name, c_outdir)
+            for r in qc_reps[qc_reps["flags"] != ""].itertuples():
+                log.write(f"{name}: FLAG {r.replicate}: {r.flags}")
 
         # Control null: mean/SD and p-curve (pooled, or one per replicate)
         me_sd, p_cont = CTR_stats.CTR_stats(
