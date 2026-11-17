@@ -149,8 +149,15 @@ def main():
         baseline = contrast["baseline"]
         cond1    = contrast["treatment"]
 
-        if len(baseline) != len(cond1):
-            log.stop(f"Contrast {name}: baseline and cond1 must have equal length")
+        if len(baseline) != len(cond1) and len(baseline) != 1:
+            log.stop(f"Contrast {name}: baseline must have one sample per treatment "
+                     f"replicate, or a single sample shared by all of them")
+        if len(baseline) == 1 and len(cond1) > 1:
+            msg = (f"{name}: WARNING one baseline ({baseline[0]}) shared by {len(cond1)} "
+                   f"treatment replicates: their LFCs share its counting noise, so p-values "
+                   f"combined across replicates are anti-conservative")
+            log.write(msg)
+            print(msg)
 
         c_outdir = output_dir / name
         c_outdir.mkdir(parents=True, exist_ok=True)

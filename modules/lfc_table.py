@@ -9,10 +9,11 @@ def lfc_table(tab, baseline, cond1):
     ----------
     tab : pandas.DataFrame
         DataFrame [gRNA, gene, <normalised count columns>]
-    baseline : str
-        Baseline condition name / column prefix
-    cond1 : str
-        Treatment condition name / column prefix
+    baseline : str or list of str
+        Baseline sample column(s), paired in order with cond1; a single
+        baseline is shared by every cond1 replicate.
+    cond1 : str or list of str
+        Treatment sample column(s).
 
     Returns
     -------
@@ -38,10 +39,16 @@ def lfc_table(tab, baseline, cond1):
     if isinstance(cond1, str):
         cond1 = [cond1]
 
+    # one baseline shared by every treatment replicate (e.g. a single T0 or plasmid)
+    if len(baseline) == 1 and len(cond1) > 1:
+        baseline = baseline * len(cond1)
     if len(baseline) != len(cond1):
-        raise ValueError(f"baseline ({baseline}) and cond1 ({cond1}) must be the same length")
+        raise ValueError(f"baseline ({baseline}) and cond1 ({cond1}) must be the same length, "
+                         f"or baseline a single sample")
 
-    suffixes = _replicate_labels(baseline)
+    # label replicates by baseline, or by treatment when baselines are shared
+    shared = len(set(baseline)) < len(baseline)
+    suffixes = _replicate_labels(cond1 if shared else baseline)
 
     for b, c, suffix in zip(baseline, cond1, suffixes):
         if b not in tab.columns or c not in tab.columns:
@@ -53,7 +60,7 @@ def lfc_table(tab, baseline, cond1):
     return out
 
 def _replicate_labels(baseline):
-    """One unique label per baseline column, used as the LFC column suffix.
+    """One unique label per sample column, used as the LFC column suffix.
 
     Tries, in order, the first rule that gives unique labels:
     1. _pairing_suffix: drop the time-point prefix ('T0_F_R1' -> 'F_R1');
