@@ -25,7 +25,6 @@ def lfc_table(tab, baseline, cond1):
     ValueError
         If a required count column (baseline/cond1, with rep suffix if applicable) is missing from tab
     """
-    eps = 1e-6
     out = pd.DataFrame({
         'gRNA':      tab.iloc[:, 0].values,
         'gene':      tab.iloc[:, 1].astype(str).values,
@@ -50,9 +49,8 @@ def lfc_table(tab, baseline, cond1):
     for b, c, suffix in zip(baseline, cond1, suffixes):
         if b not in tab.columns or c not in tab.columns:
             raise ValueError(f"Missing '{b}' or '{c}'. Columns: {tab.columns.tolist()}")
-        out[f"lfc_{suffix}"] = np.log2(
-            (tab[c].astype(float) + eps) / (tab[b].astype(float) + eps)
-        ).values
+        # counts are >= 1 after normalisation (pseudocount of 1), so no epsilon is needed
+        out[f"lfc_{suffix}"] = np.log2(tab[c].astype(float) / tab[b].astype(float)).values
 
     return out
 
